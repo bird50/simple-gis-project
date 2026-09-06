@@ -8,7 +8,7 @@
 - **Map:** MapLibre ผ่าน `react-map-gl/maplibre`; basemap และ layer แยกจาก component ใน `config/`
 - **Server state:** TanStack Query provider พร้อมสำหรับ viewport queries
 - **API:** Next.js Route Handlers + Zod; admin endpoints ตรวจ role ฝั่ง server ทุกครั้ง
-- **Authentication:** bcrypt (cost 12) + signed JWT ใน HTTP-only, SameSite cookie; middleware ป้องกัน route และ server guards ป้องกัน API
+- **Authentication:** bcrypt (cost 12) + signed JWT ใน HTTP-only, SameSite cookie; Next.js Proxy ป้องกัน route และ server guards ป้องกัน API
 - **Database:** Prisma สำหรับ users/system/audit; parameterized `pg` query สำหรับ PostGIS geometry
 - **Scale path:** bbox/viewport query → GiST index → Martin หรือ pg_tileserv → MVT สำหรับข้อมูลหลักหมื่นถึงล้าน features
 

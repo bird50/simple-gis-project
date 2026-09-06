@@ -53,6 +53,7 @@ Both commands must complete without errors. Do not suppress TypeScript or ESLint
 - `lib/auth/`: session and authorization helpers
 - `lib/db/`: shared Prisma client
 - `lib/gis/`: reusable spatial operations
+- `proxy.ts`: lightweight route authentication and role redirects
 - `prisma/schema.prisma`: users, GIS layers, and audit-log models
 - `db/init-postgis.sql`: PostGIS extension, spatial table, and indexes
 - `types/`: shared TypeScript contracts
