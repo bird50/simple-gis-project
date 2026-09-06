@@ -1,0 +1,1 @@
+import {AuthShell} from "@/components/auth/AuthShell";import {RegisterForm} from "@/components/auth/RegisterForm";export default function Register(){return <AuthShell title="สร้างบัญชีผู้ใช้งาน" subtitle="สมัครเพื่อเข้าถึงข้อมูลและเครื่องมือ GIS"><RegisterForm/></AuthShell>}
