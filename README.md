@@ -30,13 +30,13 @@ npm run dev
 
 ## Environment variables
 
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `AUTH_SECRET` | secret สำหรับลงนาม session; ต้องสุ่มและห้าม commit |
-| `NEXTAUTH_URL` | canonical application URL (เตรียมไว้สำหรับ Auth.js migration) |
-| `ADMIN_EMAIL` | email ของ initial admin |
-| `ADMIN_PASSWORD` | initial admin password ขั้นต่ำ 12 ตัวอักษร |
+| Variable         | Purpose                                                       |
+| ---------------- | ------------------------------------------------------------- |
+| `DATABASE_URL`   | PostgreSQL connection string                                  |
+| `AUTH_SECRET`    | secret สำหรับลงนาม session; ต้องสุ่มและห้าม commit            |
+| `NEXTAUTH_URL`   | canonical application URL (เตรียมไว้สำหรับ Auth.js migration) |
+| `ADMIN_EMAIL`    | email ของ initial admin                                       |
+| `ADMIN_PASSWORD` | initial admin password ขั้นต่ำ 12 ตัวอักษร                    |
 
 `ADMIN_PASSWORD` ใช้เฉพาะ seed และถูก hash ก่อนบันทึก ห้ามใช้ค่าตัวอย่างใน production
 
@@ -66,3 +66,9 @@ npm start
 ```
 
 ก่อน deploy ให้เปลี่ยน secrets, ใช้ TLS, กำหนด CSP/rate limit ที่ reverse proxy, run Prisma migrations แทน `db push`, ใช้ connection pool และตั้ง tile cache/CDN สำหรับ raster/vector tiles
+
+## GIS workspace UI
+
+หน้า `/gis` ใช้ shadcn/ui (Radix) โดยเก็บ component ไว้ใน `components/ui/` และตั้งค่าที่ `components.json`; สีผ่าน CSS tokens ใน `app/globals.css` ใช้ `cn()` จาก `lib/utils.ts` รวมคลาส Tailwind
+
+แผงชั้นข้อมูลและตารางยุบได้ ค้นหาชื่อสถานี/จังหวัดและเลือกสถานีเพื่อเลื่อนแผนที่ไปยังตำแหน่งนั้น ข้อมูลสถานีและขอบเขตใน workspace เป็นข้อมูลสาธิต ชั้นข้อมูลที่ยังไม่มี URL จะปิดการใช้งานไว้ สิทธิ์เข้าถึง `/gis` ยังคงเป็น MEMBER/ADMIN ตามเดิม
