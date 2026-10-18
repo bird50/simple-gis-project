@@ -48,6 +48,7 @@ model User {
   updatedAt DateTime @updatedAt
   lastLoginAt DateTime?
   auditLogs AuditLog[]
+  photoShares PhotoShare[]
 }
 model GisLayer {
   id String @id @default(cuid())
@@ -80,4 +81,32 @@ model AuditLog {
   createdAt DateTime @default(now())
   @@index([createdAt])
   @@index([userId])
+}
+
+model PhotoShare {
+  id String @id @default(cuid())
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  eventName String
+  tags String[]
+  published Boolean @default(true)
+  createdAt DateTime @default(now())
+  photos SharedPhoto[]
+  @@index([ownerId, createdAt])
+}
+
+model SharedPhoto {
+  id String @id @default(cuid())
+  shareId String
+  share PhotoShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  name String
+  image Bytes
+  mimeType String @default("image/jpeg")
+  longitude Float
+  latitude Float
+  capturedAt String
+  capturedOffset String?
+  sortOrder Int
+  @@index([shareId, sortOrder])
+  @@index([latitude, longitude])
 }
