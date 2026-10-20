@@ -79,6 +79,8 @@ Photo: กดเฟืองที่ชั้น My Photos ใน sidebar ด�
 
 Toolbox → Photo มีสวิตช์เปิด–ปิด Layer My Photos และ Layer Public Photos; การเลือกภาพ ดูตัวอย่าง และ Add to My Photos อยู่ในหน้าต่างลอยจากเฟืองด้านซ้าย หน้าต่างไม่บล็อกการคลิกแผนที่และเก็บรูปที่เลือกระหว่างเปิด–ปิดหน้าต่าง
 
+Toolbox → **Draw** มีสวิตช์ **Layer My Drawing** และ **Layer Public Drawing** เริ่มต้นปิด ใช้สถานะเดียวกับ sidebar และ legend พร้อมปรับความทึบได้ Renderer เลือกชั้นข้อมูลด้วย `drawingDataKey` ใน registry และรองรับ GeoJSON จุด เส้น และพื้นที่ Public Drawing ยังเป็นข้อมูลว่างและยังไม่เชื่อม API เผยแพร่รูปวาด
+
 My Photos storage: `lib/gis/photo-storage.ts` เก็บ Blob, ชื่อภาพ, GPS, user ID, createdAt และ expiresAt ใน IndexedDB (`thaiwater-my-photos`) โดยรอ transaction commit ก่อนแจ้งสำเร็จ การอ่านไม่ต่ออายุ ล้างภาพหมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาทีระหว่างเปิดหน้า (ขณะปิดเว็บจะล้างครั้งถัดไปที่เปิด) ปุ่ม Add จะแจ้งข้อผิดพลาดและเก็บรูปที่เลือกไว้หากบันทึกไม่ได้ UI แจ้งนโยบาย 15 วันและวันหมดอายุในผลบันทึก/ป๊อปอัปภาพ การล้างข้อมูลเว็บไซต์หรือ browser eviction อาจทำให้ภาพหายก่อนกำหนด ข้อมูลบนเครื่องไม่ใช่การสำรองข้อมูล และการเก็บภาพนี้ไม่ได้ทำให้ basemap ใช้งาน offline ได้
 
 ## Public photo sharing
@@ -122,3 +124,18 @@ Public Photos ใช้ไอคอนกล้องสีฟ้าเหมื
 Public API รองรับ `username`, `eventName`, `startDate=YYYY-MM-DD`, `endDate=YYYY-MM-DD`, `tag` เพิ่มเติม ตรวจรูปแบบวันที่จริงและปฏิเสธช่วงกลับด้านด้วย 400 ค้นหาที่ฐานข้อมูลก่อนจำกัดผล ไม่ส่ง email/ชื่อจริง/ข้อมูลบัญชีอื่น มีเพียง username สาธารณะที่ใช้ระบุผู้แชร์ใน popup ความสัมพันธ์ PhotoShare.owner ใช้ migration `20261019020000_photo_share_owner` และป้องกันการ hard delete บัญชีที่ยังมีชุดภาพ ให้เปลี่ยนสถานะบัญชีตามแนวทางเดิม
 
 หลังแก้ Prisma schema หรือรัน `prisma generate` ให้รีสตาร์ต `npm run dev` ด้วย เพราะ dev server ที่เปิดค้างอาจยัง cache Prisma client เดิม โดยเฉพาะเมื่อเพิ่ม relation (`PhotoShare.owner`) หาก Public Photos คืน 503 แต่ query ด้วย process ใหม่ได้ ให้ตรวจ server log `Public Photos query failed` และรีสตาร์ต dev server ก่อนเปลี่ยนฐานข้อมูล ข้อผิดพลาดภายในไม่ถูกส่งให้ client
+
+
+## Drawing Toolbar
+
+Toolbox → Draw → **Drawing Toolbar** เปิด/ปิดแถบเครื่องมือด้านขวาบนแผนที่ สีเริ่มต้นของรูปวาดเป็นสีแดง เปิดแล้วเปิด Layer My Drawing ด้วย ปิดแถบแล้วกลับไปเลื่อนแผนที่ได้และรูปวาดยังแสดงจนกว่าจะปิด layer
+
+- Select: แสดงพิกัดทุกจุดของวัตถุที่เลือกเป็นละติจูด, ลองจิจูด (WGS84) ในแถบเครื่องมือ อัปเดตขณะย้ายหรือปรับขนาด คลิกเลือกและลากย้าย ลากจุดมุมล่างขวาเพื่อปรับขนาด; Pan: เลื่อนแผนที่ตามปกติ
+- Pen / Highlighter: ลากเมาส์หรือนิ้วเพื่อวาดเส้นอิสระหรือเน้นด้วยสีโปร่งใส; Eraser: คลิกเพื่อลบทั้งวัตถุ
+- Point: คลิกเพิ่มจุด; Line / Polygon: คลิกเพิ่มจุดแล้วกดเสร็จสิ้นหรือ Enter (อย่างน้อย 2 / 3 จุด)
+- Rectangle / Circle / Arrow: ลากเพื่อสร้าง; วงกลมใช้ระยะทางบนโลกผ่าน Turf.js
+- Text / Textbox / Label / Sticky Note / Legend: กรอกข้อความแล้วคลิกวาง; Legend ใช้หนึ่งรายการต่อบรรทัด; Callout: ลากจากจุดที่ต้องการชี้ไปตำแหน่งข้อความ; Number Marker: เพิ่มเลขต่อเนื่องอัตโนมัติ
+- เลือกวัตถุเพื่อแก้ข้อความและรูปแบบได้: Font, Size, Color, Background, Border, Transparency, Rotation และ Alignment; ขนาดเส้นกำหนดความหนากรอบด้วย
+- Undo/Redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z), Delete ลบวัตถุที่เลือก, Escape ยกเลิกการวาดที่ยังไม่เสร็จ; ไม่จับคีย์ลัดขณะพิมพ์ในฟอร์ม
+
+รูปวาดเก็บเฉพาะหน่วยความจำในหน้านี้ รีเฟรชหรือออกจากหน้าแล้วหาย (มีข้อความแจ้งใน Toolbar) ไม่ได้บันทึก IndexedDB หรือแชร์ Public อัตโนมัติ จำกัด 500 วัตถุ / 2,000 จุดต่อเส้น / Undo 50 ขั้น พิกัดใช้ WGS84 และ overlay ฉายตำแหน่งใหม่เมื่อเลื่อน ซูม หมุน หรือปรับขนาดแผนที่ ข้อความใช้ JSX ไม่ใช้ HTML จากผู้ใช้
