@@ -26,13 +26,13 @@ export function PhotoSettings({open,onOpenChange,onAdd,storageReady,storageMessa
 
   return <Dialog.Root open={open} onOpenChange={onOpenChange} modal={false}>
     <Dialog.Portal>
-      <Dialog.Content onInteractOutside={event=>event.preventDefault()} onCloseAutoFocus={event=>{event.preventDefault();document.getElementById("my-photos-settings")?.focus();}} className="fixed right-3 top-20 z-50 flex max-h-[calc(100dvh-96px)] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl outline-none data-[state=closed]:hidden md:right-80">
+      <Dialog.Content onInteractOutside={event=>event.preventDefault()} onCloseAutoFocus={event=>{event.preventDefault();document.getElementById("toolbox-my-photos-settings")?.focus();}} className="fixed right-3 top-20 z-50 flex max-h-[calc(100dvh-96px)] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl outline-none data-[state=closed]:hidden md:right-80">
         <div className="flex shrink-0 items-start justify-between border-b border-slate-200 p-4">
           <div><Dialog.Title className="flex items-center gap-2 text-sm font-semibold"><Settings className="size-4 text-teal-700"/>จัดการ My Photos</Dialog.Title><Dialog.Description className="mt-1 text-xs text-slate-500">อ่านพิกัด GPS จาก EXIF ของแต่ละภาพโดยอัตโนมัติ</Dialog.Description></div>
           <Dialog.Close asChild><Button variant="ghost" size="icon" className="size-8" aria-label="ปิดการจัดการ My Photos"><X/></Button></Dialog.Close>
         </div>
         <div className="min-h-0 overflow-y-auto p-4">
-          <p className="mb-3 rounded-lg bg-teal-50 p-3 text-xs leading-5 text-teal-800">รูปที่กด Add to My Photos จะเก็บบนเบราว์เซอร์นี้ 15 วันนับจากวันที่เพิ่ม แล้วล้างเมื่อเปิดใช้งาน ไม่อัปโหลดไปเซิร์ฟเวอร์ การล้างข้อมูลเว็บไซต์อาจทำให้รูปหายก่อนกำหนด</p>
+          <p className="mb-3 rounded-lg bg-teal-50 p-3 text-xs leading-5 text-teal-800">รูปที่กด Add to My Photos จะเก็บบนเบราว์เซอร์นี้ 15 วัน ไม่อัปโหลดไปเซิร์ฟเวอร์ การล้างข้อมูลเว็บไซต์อาจทำให้รูปหายก่อนกำหนด อัปโหลดเฉพาะรูปที่เลือกเมื่อกด Save & Share Public</p>
           {storageMessage&&<p role="status" className="mb-3 text-xs text-amber-700">{storageMessage}</p>}
           {!storageReady&&!storageMessage&&<p role="status" className="mb-3 text-xs text-slate-500">กำลังเปิดที่เก็บรูปบนเครื่อง…</p>}
           <label htmlFor="toolbox-photo" className="mb-2 flex items-center gap-2 text-xs font-medium"><ImagePlus size={15}/>เลือกภาพถ่าย</label>

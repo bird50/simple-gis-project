@@ -69,62 +69,44 @@ npm start
 
 ## GIS workspace UI
 
+ลากขอบขวาของ Layer / ขอบซ้ายของ Toolbox เพื่อปรับความกว้าง และลากขอบบนตารางสถานีเพื่อปรับความสูงได้ รองรับเมาส์และสัมผัส หรือ Tab ไปที่ตัวแบ่งแล้วใช้ปุ่มลูกศร (Shift เพื่อปรับครั้งละมากขึ้น, Home/End เพื่อเลือกขนาดต่ำสุด/สูงสุด) จำกัดขนาดตามพื้นที่หน้าจอและเลื่อนเนื้อหาภายในได้ ขนาดเก็บระหว่างเปิด–ปิด panel ในหน้านี้
+
+ขอบซ้ายรายการ Layer จาก Toolbox Photo/Draw ใช้แถบสีส้ม ส่วน Layer ปกติใช้สีฟ้า แสดงทั้งขณะเปิดและปิดเลเยอร์
+
+รายการ Layer เริ่มต้นแสดงชื่อหนึ่งบรรทัดและปุ่มดวงตา กดไอคอน ⓘ เพื่อแสดง/ซ่อนคำอธิบาย กดชื่อหรือลูกศรเพื่อคลี่ตัวปรับความทึบและปุ่มตั้งค่า กดซ้ำเพื่อย่อ โดยการคลี่ไม่เปลี่ยนสถานะเปิด–ปิดเลเยอร์
+
+แผง Layer ใช้ธีมมืดไล่เฉด มุมโค้ง พร้อมไอคอนดวงตาสำหรับเปิด–ปิดชั้นข้อมูล แถวที่เปิดแสดงพื้นหลังเข้มและดวงตาสีฟ้า โดยยังปรับความทึบและตั้งค่า Public Photos ได้ตามเดิม
+
 หน้า `/gis` ใช้ shadcn/ui (Radix) โดยเก็บ component ไว้ใน `components/ui/` และตั้งค่าที่ `components.json`; สีผ่าน CSS tokens ใน `app/globals.css` ใช้ `cn()` จาก `lib/utils.ts` รวมคลาส Tailwind
 
-แผงชั้นข้อมูลและตารางยุบได้ ค้นหาชื่อสถานี/จังหวัดและเลือกสถานีเพื่อเลื่อนแผนที่ไปยังตำแหน่งนั้น ข้อมูลสถานีและขอบเขตใน workspace เป็นข้อมูลสาธิต ชั้นข้อมูลที่ยังไม่มี URL จะปิดการใช้งานไว้ สิทธิ์เข้าถึง `/gis` ยังคงเป็น MEMBER/ADMIN ตามเดิม
+เมื่อเปิด `/gis` จะซ่อนแผงชั้นข้อมูล, Toolbox, ตารางสถานี และสัญลักษณ์แผนที่เป็นค่าเริ่มต้น เปิด–ปิดได้จากปุ่มบนแผนที่ แผงชั้นข้อมูลและตารางยุบได้ ค้นหาชื่อสถานี/จังหวัดและเลือกสถานีเพื่อเลื่อนแผนที่ไปยังตำแหน่งนั้น ข้อมูลสถานีและขอบเขตใน workspace เป็นข้อมูลสาธิต ชั้นข้อมูลที่ยังไม่มี URL จะปิดการใช้งานไว้ สิทธิ์เข้าถึง `/gis` ยังคงเป็น MEMBER/ADMIN ตามเดิม
 
-หน้า GIS มีแผง **Toolbox** ด้านขวาซึ่งยุบได้ พร้อมเครื่องมือ **Photo** สำหรับเลือกภาพหลายรูป เพิ่มภาพต่อเนื่อง ดูตัวอย่าง และลบแต่ละรูปได้ รองรับไฟล์ JPG/PNG/WebP ไม่เกิน 10 MB ต่อรูปบนเครื่อง การกด Add to My Photos ไม่อัปโหลดภาพ ส่วน Save & Share Public จะบันทึกขึ้นเซิร์ฟเวอร์
+## Toolbox photo service (SQLite)
 
-Photo: กดเฟืองที่ชั้น My Photos ใน sidebar ด้านซ้ายเพื่อเปิดหน้าต่างลอยจัดการภาพ (ปิดด้วยปุ่มปิดหรือ Escape) เลือกภาพแล้วระบบอ่านพิกัด GPS จาก EXIF ด้วย `exifr` บนเครื่อง แสดงพิกัดและสถานะของแต่ละรูป กด **Add to My Photos** เพื่อเพิ่มเฉพาะรูปที่มีพิกัดถูกต้องใน WGS84 (EPSG:4326) รูปที่ไม่มีพิกัดหรืออ่านไม่ได้จะคงอยู่ในรายการและไม่ถูกวางที่ตำแหน่งสมมติ สวิตช์ใน Toolbox และ sidebar ใช้สถานะเดียวกัน ภาพเก็บใน IndexedDB แยกตาม user ID ในเบราว์เซอร์เดิมเป็นเวลา 15 วันนับจาก Add สำเร็จ ไม่มีการอัปโหลดไปเซิร์ฟเวอร์
+เฉพาะ Public Photos แยกเป็นระบบ Node.js ใน `../toolbox_service` โดยเว็บเรียกผ่าน Next.js API proxy; service เป็นผู้ตรวจ EXIF, แปลงภาพ, บันทึก JPEG/metadata และ audit ลง SQLite ทั้งหมด ไม่ใช้ Prisma/PostgreSQL สำหรับภาพใหม่ บัญชีและข้อมูล GIS อื่นยังใช้ฐานข้อมูลเดิม
 
-Toolbox → Photo มีสวิตช์เปิด–ปิด Layer My Photos และ Layer Public Photos; การเลือกภาพ ดูตัวอย่าง และ Add to My Photos อยู่ในหน้าต่างลอยจากเฟืองด้านซ้าย หน้าต่างไม่บล็อกการคลิกแผนที่และเก็บรูปที่เลือกระหว่างเปิด–ปิดหน้าต่าง
-
-Toolbox → **Draw** มีสวิตช์ **Layer My Drawing** และ **Layer Public Drawing** เริ่มต้นปิด ใช้สถานะเดียวกับ sidebar และ legend พร้อมปรับความทึบได้ Renderer เลือกชั้นข้อมูลด้วย `drawingDataKey` ใน registry และรองรับ GeoJSON จุด เส้น และพื้นที่ Public Drawing ยังเป็นข้อมูลว่างและยังไม่เชื่อม API เผยแพร่รูปวาด
-
-My Photos storage: `lib/gis/photo-storage.ts` เก็บ Blob, ชื่อภาพ, GPS, user ID, createdAt และ expiresAt ใน IndexedDB (`thaiwater-my-photos`) โดยรอ transaction commit ก่อนแจ้งสำเร็จ การอ่านไม่ต่ออายุ ล้างภาพหมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาทีระหว่างเปิดหน้า (ขณะปิดเว็บจะล้างครั้งถัดไปที่เปิด) ปุ่ม Add จะแจ้งข้อผิดพลาดและเก็บรูปที่เลือกไว้หากบันทึกไม่ได้ UI แจ้งนโยบาย 15 วันและวันหมดอายุในผลบันทึก/ป๊อปอัปภาพ การล้างข้อมูลเว็บไซต์หรือ browser eviction อาจทำให้ภาพหายก่อนกำหนด ข้อมูลบนเครื่องไม่ใช่การสำรองข้อมูล และการเก็บภาพนี้ไม่ได้ทำให้ basemap ใช้งาน offline ได้
-
-## Public photo sharing
-
-จากเฟือง **My Photos** เลือกรูปที่บันทึกบนเครื่องในส่วน **บันทึกเพื่อแชร์ Public** ใส่ชื่อเหตุการณ์และแท็กเพิ่มเติม แล้วกด **Save & Share Public** ระบบอัปโหลดและสร้างลิงก์ `/share/[shareId]` ซึ่งเปิดได้โดยไม่ต้องล็อกอิน ภาพ Public เก็บบนเซิร์ฟเวอร์แยกจาก IndexedDB และไม่ถูกลบตามรอบ 15 วันของรูปบนเครื่อง
-
-- ชื่อเหตุการณ์จำเป็น สูงสุด 160 ตัวอักษร; แท็กเพิ่มเติมไม่เกิน 10 แท็ก แท็กละ 50 ตัวอักษร
-- เซิร์ฟเวอร์สร้างแท็ก `shareYYYY-MM-DD` โดยใช้วันที่บันทึกจริงในเขตเวลา Asia/Bangkok ห้ามส่งแท็กแบบนี้จาก client เพื่อแก้หรือแทนที่แท็กระบบ
-- แชร์ครั้งละ 1–10 รูป ไม่เกิน 10 MB ต่อรูปและ request รวมไม่เกิน 25 MB รองรับ JPEG/PNG/WebP ภาพไม่เกิน 40 ล้านพิกเซล
-- ทุกรูปต้องมี GPS ที่ถูกต้องและ EXIF `DateTimeOriginal`; ไม่มีการใช้เวลาอัปโหลดหรือวันที่แก้ไฟล์แทนวันที่ถ่าย เซิร์ฟเวอร์อ่าน EXIF จากไฟล์ซ้ำและไม่รับพิกัด/วันที่จากฟอร์ม
-- `capturedAt` เก็บเวลาตามกล้องเป็นข้อความ ISO local และ `capturedOffset` เก็บ EXIF `OffsetTimeOriginal` ถ้ามี หากไม่มีก็แสดงว่าไม่ระบุเขตเวลา โดยไม่เดาว่าเป็น UTC หรือเวลาไทย
-- ภาพ Public ถูกถอดรหัส ตรวจชนิด ย่อด้านยาวสูงสุด 2,400 px และสร้าง JPEG ใหม่ด้วย sharp โดยไม่แนบ EXIF ส่วนเกิน เก็บพิกัด/วันที่เป็นข้อมูลแยกและแสดงต่อสาธารณะ
-- ใช้ Prisma models `PhotoShare` / `SharedPhoto`; bytes ของ JPEG เก็บใน PostgreSQL ภายใต้ขนาดที่จำกัด ไม่มี spatial query สำหรับฟีเจอร์นี้ จึงไม่มีคอลัมน์ geometry/GiST หากขยายเป็นข้อมูลขนาดใหญ่ควรย้าย bytes ไป object storage และใช้ PostGIS/MVT สำหรับแผนที่
-- `POST /api/photo-shares`: MEMBER/ADMIN ที่บัญชี ACTIVE เท่านั้น ตรวจ session และ origin, Zod validation และเขียน `PHOTO_SHARE_PUBLISHED` ลง AuditLog ใน transaction เดียวกับชุดภาพ
-- `/share/[shareId]` และ `GET /api/photo-shares/[shareId]/photos/[photoId]`: PUBLIC เฉพาะชุดที่ published; ไม่คืนข้อมูลบัญชีผู้แชร์หรือรูปจาก IndexedDB
-
-### Database setup for photo shares
-
-การพัฒนาในเครื่องใช้ `npm run db:push` ตาม setup เดิมได้ ไม่ต้อง seed ข้อมูลภาพ สำหรับ production ให้ตรวจทาน SQL ใน `prisma/migrations/` และใช้ Prisma migrations:
+ตั้งค่า `TOOLBOX_SERVICE_URL=http://127.0.0.1:4010` และ `TOOLBOX_SERVICE_KEY` ใน `.env` ของเว็บ โดย key ต้องสุ่มอย่างน้อย 32 ตัวอักษร และตรงกับ `.env` ของ service ห้ามใช้ตัวแปร `NEXT_PUBLIC_*` สำหรับ key
 
 ```bash
-# ฐานข้อมูลใหม่
-npx prisma migrate deploy
-# จากนั้นสร้าง spatial table ตามขั้นตอน db/init-postgis.sql เดิม
+cd ../toolbox_service
+npm install
+# คัดลอก .env.example เป็น .env และตั้ง key ให้ตรงกับเว็บ
+npm run dev
 ```
 
-ฐานข้อมูลเดิมที่เคยใช้ db:push และยังไม่มี migration history: ตรวจว่าสคีมาเดิมตรงกับ `0_init` ก่อน baseline ด้วย `npx prisma migrate resolve --applied 0_init` แล้วใช้ `npx prisma migrate deploy` เพื่อเพิ่มตารางภาพ หากตารางภาพถูกสร้างด้วย db:push หรือ db execute แล้ว ต้องตรวจว่าสคีมาตรงกับ migration ก่อน mark `20261019000000_public_photo_shares` เป็น applied เช่นกัน ห้ามรัน initial CREATE TABLE ซ้ำบนฐานข้อมูลเดิม ไม่เพิ่ม environment variable หรือ seed password ใหม่สำหรับฟีเจอร์นี้
+เปิดอีก terminal รัน `npm run dev` ในเว็บ รีสตาร์ตเว็บหลังเปลี่ยน environment รายละเอียด API/การสำรองอยู่ใน `../toolbox_service/README.md`
 
-ตรวจสอบฟีเจอร์ Public sharing โดยไม่ใช้ฐานข้อมูล: `node --import tsx --test tests/photo-sharing.test.ts` ครอบคลุมแท็กวันที่เวลาไทย, ป้องกันการแทนที่แท็กระบบ, EXIF GPS/วันที่ถ่าย, การสร้าง JPEG ที่ไม่มี EXIF ส่วนเกิน และขนาด multipart
+- **Add to My Photos** บันทึกไฟล์ต้นฉบับใน IndexedDB `thaiwater-my-photos` ของเบราว์เซอร์ แยกตาม user ID; ผู้เยี่ยมชมใช้ namespace เดิม `guest-workspace-v1` เก็บ 15 วัน ไม่ต่ออายุเมื่ออ่าน ไม่เรียก API หรืออัปโหลดไป service รองรับ JPEG/PNG/WebP รูปละ 10 MB และ GPS จาก EXIF การล้างข้อมูลเว็บไซต์อาจทำให้รูปหายก่อนกำหนด
+- ล้างภาพในเครื่องที่หมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาที My Photos ใช้งานได้แม้ service ไม่พร้อม
+- **Save & Share Public** อัปโหลดเฉพาะไฟล์ที่เลือกจาก My Photos เป็น multipart `{eventName,tags,photos}` ครั้งละ 1–10 รูป รวม request ไม่เกิน 25 MB ตรวจ GPS/วันที่ถ่ายจาก EXIF ใหม่ แปลงเป็น JPEG ด้านยาวสูงสุด 2,400 px และถอด EXIF ส่วนเกิน บันทึก Public พร้อม audit ใน transaction และแท็ก `shareYYYY-MM-DD` เวลาไทย ภาพ Public ไม่หมดอายุตาม My Photos
+- `POST /api/photo-shares`: เมื่อเปิดระบบบัญชีใช้ requireUser และตรวจ ACTIVE; โหมดผู้เยี่ยมชมใช้ signed HTTP-only cookie ระบุผู้เผยแพร่ ไม่เกี่ยวกับการบันทึก/อ่าน My Photos ไม่มี My Photos API ในเว็บหรือ service
+- `GET /api/public/photos?bbox=west,south,east,north&limit=200`, `/share/[shareId]` และ `GET /api/photo-shares/[shareId]/photos/[photoId]`: PUBLIC ผ่าน proxy โดยไม่เปิดเผย service key
+- Public Photos โหลดตาม viewport แบบ debounce และยกเลิกคำขอเก่า จำกัด 1–200 รูปพร้อม `hasMore` รองรับข้ามเส้นวันที่ กรอง `username`, `eventName`, `tag`, `startDate`, `endDate` ด้วย OR ระหว่างเงื่อนไข โดยช่วงวันเป็นเงื่อนไขเดียว และยังบังคับ bbox ทุกครั้ง ใช้ SQL placeholders และ index
+- `capturedAt` เป็นเวลาตามกล้องและ `capturedOffset` เป็น timezone จาก EXIF ไม่ใช้เวลาอัปโหลดแทนวันที่ถ่าย
 
-## Public Photos map layer
+My Photos ใน IndexedDB เดิมที่ยังไม่หมดอายุอ่านต่อได้ทันที ข้อมูล Public เดิมใน Prisma ยังไม่ย้ายเข้า SQLite อัตโนมัติ ข้อมูล My Photos ที่เคยบันทึกใน SQLite ระหว่างการพัฒนายังไม่ถูกลบ แต่ไม่ได้อ่านกลับเข้าหน้า My Photos; ไม่มีการย้ายกลับเบราว์เซอร์อัตโนมัติ Simple Data Files และ Draw เก็บแยกบนเบราว์เซอร์
 
-Toolbox → Photo มีสวิตช์ **Layer Public Photos** ซึ่งใช้สถานะเดียวกับชั้น Public Photos ใน sidebar เปิดแล้วโหลดภาพ published ใน viewport ปัจจุบันแบบ debounce 250 ms และยกเลิก request เก่าเมื่อเลื่อนแผนที่หรือปิด layer แสดงไอคอนสีน้ำเงิน คลิกดูภาพ ชื่อเหตุการณ์ แท็ก วันที่ถ่าย และลิงก์ชุดภาพ Public ได้ หลังแชร์ชุดใหม่จะรีเฟรช layer ที่เปิดอยู่
-
-`GET /api/public/photos?bbox=west,south,east,north&limit=200` เป็น PUBLIC คืนเฉพาะ metadata และ URL ภาพ ไม่ส่ง binary ภาพหรือข้อมูลบัญชี ต้องมี bbox ที่ตรวจด้วย Zod (WGS84 รวมกรณีข้ามเส้นวันที่) และ limit 1–200 หากเกินจะแจ้งให้ซูมเข้า มีสถานะกำลังโหลด/ไม่พบภาพ/โหลดผิดพลาด การ query ใช้ Prisma แบบมีตัวกรอง published และ numeric coordinate index ใน migration `20261019010000_public_photo_viewport` หากขยายข้อมูลจำนวนมากควรย้ายไป PostGIS/MVT และ clustering ตามแนวทางโครงการ
-
-Photo renderer ใช้ `photoDataKey` ใน LayerDefinition (`my-photos` / `public-photos`) เพื่อเลือกแหล่งภาพตาม registry โดยไม่เพิ่ม conditional dataset ใน GISMap
-
-Public Photos ใช้ไอคอนกล้องสีฟ้าเหมือน My Photos ปุ่มเฟืองทั้งใน sidebar และ Toolbox เปิดหน้าต่างค้นหา username ผู้แชร์, ชื่อเหตุการณ์ (ค้นหาบางส่วน ไม่แยกตัวพิมพ์ใหญ่เล็ก), วันเริ่มต้น/สิ้นสุดของวันที่ถ่าย EXIF (รวมทั้งสองวัน ตามเวลาของกล้อง), และ tag แบบตรงทั้งแท็ก ชื่อผู้ใช้ เหตุการณ์ ช่วงวันที่ และ tag ใช้ OR: ตรงอย่างน้อยหนึ่งเงื่อนไข โดยช่วงวันที่เป็นเงื่อนไขเดียวที่ต้องอยู่ระหว่างวันเริ่มต้นถึงสิ้นสุดเสมอ และทุกผลลัพธ์ยังต้อง published และอยู่ใน viewport ปัจจุบัน กดค้นหาภาพจะเปิด layer หากยังปิดอยู่ ล้างเงื่อนไขได้ โดยยังจำกัดผล 200 รูป
-
-Public API รองรับ `username`, `eventName`, `startDate=YYYY-MM-DD`, `endDate=YYYY-MM-DD`, `tag` เพิ่มเติม ตรวจรูปแบบวันที่จริงและปฏิเสธช่วงกลับด้านด้วย 400 ค้นหาที่ฐานข้อมูลก่อนจำกัดผล ไม่ส่ง email/ชื่อจริง/ข้อมูลบัญชีอื่น มีเพียง username สาธารณะที่ใช้ระบุผู้แชร์ใน popup ความสัมพันธ์ PhotoShare.owner ใช้ migration `20261019020000_photo_share_owner` และป้องกันการ hard delete บัญชีที่ยังมีชุดภาพ ให้เปลี่ยนสถานะบัญชีตามแนวทางเดิม
-
-หลังแก้ Prisma schema หรือรัน `prisma generate` ให้รีสตาร์ต `npm run dev` ด้วย เพราะ dev server ที่เปิดค้างอาจยัง cache Prisma client เดิม โดยเฉพาะเมื่อเพิ่ม relation (`PhotoShare.owner`) หาก Public Photos คืน 503 แต่ query ด้วย process ใหม่ได้ ให้ตรวจ server log `Public Photos query failed` และรีสตาร์ต dev server ก่อนเปลี่ยนฐานข้อมูล ข้อผิดพลาดภายในไม่ถูกส่งให้ client
-
+ตรวจ service ด้วย `npm run lint`, `npm run build`, `npm test` ในโฟลเดอร์ `toolbox_service` ทดสอบ multipart publication, validation, atomicity, ตัวกรอง และข้อมูลหลังเปิดฐานข้อมูลใหม่
 
 ## Drawing Toolbar
 
@@ -138,4 +120,41 @@ Toolbox → Draw → **Drawing Toolbar** เปิด/ปิดแถบเค�
 - เลือกวัตถุเพื่อแก้ข้อความและรูปแบบได้: Font, Size, Color, Background, Border, Transparency, Rotation และ Alignment; ขนาดเส้นกำหนดความหนากรอบด้วย
 - Undo/Redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z), Delete ลบวัตถุที่เลือก, Escape ยกเลิกการวาดที่ยังไม่เสร็จ; ไม่จับคีย์ลัดขณะพิมพ์ในฟอร์ม
 
-รูปวาดเก็บเฉพาะหน่วยความจำในหน้านี้ รีเฟรชหรือออกจากหน้าแล้วหาย (มีข้อความแจ้งใน Toolbar) ไม่ได้บันทึก IndexedDB หรือแชร์ Public อัตโนมัติ จำกัด 500 วัตถุ / 2,000 จุดต่อเส้น / Undo 50 ขั้น พิกัดใช้ WGS84 และ overlay ฉายตำแหน่งใหม่เมื่อเลื่อน ซูม หมุน หรือปรับขนาดแผนที่ ข้อความใช้ JSX ไม่ใช้ HTML จากผู้ใช้
+รูปวาดที่กำลังแก้ไขอยู่ในหน่วยความจำ กด **บันทึก My Drawing** ใน Drawing Toolbar เพื่อเก็บใน IndexedDB `thaiwater-my-drawing` แยกตาม user ID (guest ใช้ namespace เดิม) เป็นเวลา 15 วันนับจากบันทึกครั้งล่าสุด อ่านกลับเมื่อเข้า GIS และล้างรายการหมดอายุเมื่อเปิดครั้งถัดไป การแก้ไขที่ไม่ได้กดบันทึกจะหายเมื่อรีเฟรช ไม่ส่ง My Drawing ไป service จำกัด 500 วัตถุ / 2,000 จุดต่อเส้น / Undo 50 ขั้น พิกัดใช้ WGS84 และ overlay ฉายตำแหน่งใหม่เมื่อเลื่อน ซูม หมุน หรือปรับขนาดแผนที่ ข้อความใช้ JSX ไม่ใช้ HTML จากผู้ใช้
+
+## Webmap extensions
+
+Webmap มี API ส่วนขยายเวอร์ชัน `1.0` และ Toolbox registry ใน `config/toolboxes.tsx` แยก Photo/Draw เป็น panel และมี NavigationTool ตัวอย่างที่ใช้ API กลางโดยไม่ผูกกับ MapLibre การเพิ่ม GeoJSON ทั่วไปใช้ `render` ใน layer registry ได้ อ่านสัญญา วิธีเพิ่ม layer/toolbox และข้อกำหนดการนำไปใช้กับ Webmap อื่นใน [Webmap extension guide](docs/webmap-extensions.md)
+
+## Temporary account-free mode
+
+ขณะนี้ `AUTH_ENABLED=false` ใน `lib/auth/mode.ts`: `/gis`, `GET /api/gis/layers` และ `GET /api/gis/stations` ใช้งานได้โดยไม่ล็อกอิน ผู้เยี่ยมชมเห็น layer ระดับ PUBLIC/MEMBER ส่วน ADMIN ยังคงไม่เปิดเผย หน้าแรกแสดงปุ่มเปิด GIS โดยตรง
+
+My Photos และ Simple Data Files ใช้ namespace `guest-workspace-v1` ใน IndexedDB ของเบราว์เซอร์ ภาพเดิมยังไม่ถูกย้าย/ลบ; signed cookie ของ Toolbox ใช้เฉพาะระบุผู้เผยแพร่ Public
+
+หน้า login/register/profile/admin ส่งไป `/gis`; API login/register/profile/admin พักใช้งานด้วย 503 โดยไม่เปิดข้อมูลบัญชีหรือสร้างบัญชีสมมติ Logout ยังล้าง cookie ได้ หากต้องการเปิดระบบบัญชีกลับ ให้เปลี่ยน `AUTH_ENABLED=true` แล้ว build/restart โดยใช้ AUTH_SECRET และฐานข้อมูลตาม setup เดิม ข้อกำหนดสิทธิ์ในส่วนอื่นของ README อธิบายการทำงานเมื่อเปิดระบบบัญชี
+
+## Simple Data Files (frontend)
+
+Toolbox → **Simple Data Files** → เฟือง **Layer My Data Files** เปิดหน้าต่างนำเข้าไฟล์หนึ่งไฟล์ต่อครั้งพร้อมคำอธิบาย (ไม่บังคับ สูงสุด 1,000 ตัวอักษร) เพิ่มแล้วเปิด Layer และซูมไปยังข้อมูลอัตโนมัติ รายการแสดงชื่อ คำอธิบาย จำนวน features วันหมดอายุ และปุ่มลบ สวิตช์ใน Toolbox กับ sidebar ใช้สถานะเดียวกัน ปรับความทึบใน sidebar ได้ และขอบซ้ายเป็นสีส้ม
+
+- `.kml`: Point, LineString, Polygon (รวมรูด้านใน) และ MultiGeometry ที่ประกอบด้วยชนิดเหล่านี้ อ่านชื่อ/คำอธิบายเป็นข้อความ ไม่โหลด NetworkLink, รูปภาพ หรือ URL ภายนอก ไม่รองรับ KMZ, GroundOverlay หรือ gx:Track
+- `.geojson` / `.json`: Feature หรือ FeatureCollection ของ Point, LineString, Polygon และ MultiPoint/MultiLineString/MultiPolygon; properties เป็น string/number/boolean/null ไม่รองรับ GeometryCollection, null geometry หรือ properties แบบซ้อน
+- `.csv`: แถวหัวคอลัมน์ต้องมี `latitude`/`lat` และ `longitude`/`lon`/`lng` (ไม่แยกตัวพิมพ์ใหญ่เล็ก) รองรับ UTF-8/BOM, quoted commas และ multiline fields คอลัมน์อื่นแสดงใน popup เป็นข้อความ แถวผิดพลาดทำให้ปฏิเสธไฟล์ทั้งหมด
+- พิกัด WGS84 (`EPSG:4326`, longitude ก่อน latitude) ทุกประเภท ไฟล์ไม่เกิน 5 MB / 5,000 features / 50,000 จุดพิกัด; รวมไม่เกิน 20 ไฟล์ / 10,000 features / 20 MB หลังแปลง ไม่เหมาะกับข้อมูลขนาดใหญ่ ซึ่งควรให้บริการผ่าน viewport/MVT
+
+เก็บข้อมูลที่แปลงแล้วและ metadata ใน IndexedDB `thaiwater-data-files` แยกตาม user ID; โหมดผู้เยี่ยมชมใช้ namespace `guest-workspace-v1` ไม่อัปโหลดหรือสร้าง API ใหม่ เก็บ 15 วันนับจาก transaction บันทึกสำเร็จ การอ่านไม่ต่ออายุ ล้างข้อมูลหมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาทีระหว่างเปิดหน้า เมื่อปิดเว็บจะล้างครั้งถัดไปที่เปิด การล้างข้อมูลเว็บไซต์หรือ browser eviction อาจทำให้ข้อมูลหายก่อนกำหนด
+
+Renderer ใช้ registry `render.kind="mixed"` และ `render.dataKey="my-data-files"` สำหรับจุด เส้น และพื้นที่ร่วมกัน; `LayerDefinition.toolboxId` ระบุแหล่ง Toolbox เพื่อแสดงแถบสีส้ม โดยไม่เพิ่ม renderer ของ dataset เฉพาะใน GISMap
+
+ตรวจ parser: `node --import tsx --test tests/data-files.test.ts`
+
+## Public Drawing service
+
+ใน Drawing Toolbar ระบุชื่อชุดและกด **Save & Share Public** เพื่ออัปโหลดวัตถุที่เลือก หากไม่ได้เลือกจะส่งทั้งชุด ผู้ใช้เห็นข้อความยืนยันขอบเขตก่อนกด ทุกคนเห็นรูปวาดและข้อความที่เผยแพร่แล้ว การแก้ไข My Drawing ไม่เปลี่ยนสำเนา Public เปิด Layer Public Drawing เพื่อดูผล โดยรักษาสี รูปแบบ ข้อความ ลูกศร และการหมุนตามต้นฉบับ
+
+- `POST /api/drawing-shares` ส่ง JSON `{name,drawings}` ผ่าน proxy ไป `/drawing-shares` ใน Toolbox; requireUser/ACTIVE เมื่อเปิดบัญชี หรือ signed guest identity ในโหมดปัจจุบัน พร้อม same-origin check ใช้ key เฉพาะฝั่งเซิร์ฟเวอร์
+- Zod ตรวจชนิดวัตถุ พิกัด WGS84 รูปทรงปิด สี hex และรูปแบบที่อนุญาต แชร์ 1–100 วัตถุ ไม่เกิน 20,000 จุด / 1 MB; การบันทึก My Drawing จำกัด 500 วัตถุ / 20,000 จุด / 1 MB ข้อความวัตถุละ 1,000 ตัวอักษร
+- `GET /api/public/drawings?bbox=west,south,east,north&limit=50` เป็น PUBLIC และ proxy ไป `/public/drawings` ค้นหากรอบรูปวาดที่ทับ viewport ด้วย indexed numeric bounds ใน SQLite รวม viewport ข้ามเส้นวันที่ จำกัด 50 วัตถุ / 20,000 จุด / ประมาณ 1 MB ต่อคำตอบ พร้อม `hasMore` ให้ซูมเข้า เป็นการค้นหากรอบ ไม่ใช่ exact geometry intersection
+- ไม่ดึงข้อมูลทั้งชุดฐานข้อมูล; debounce 250 ms และยกเลิก request เก่า รองรับ loading/empty/error และปรับ opacity/visibility ผ่าน registry เดิม Public Drawing เป็น read-only ไม่แก้หรือลบด้วยเครื่องมือ My Drawing
+- SQLite เก็บ `drawing_shares`, `drawings`, `drawing_bounds` และ audit `DRAWING_SHARE_PUBLISHED` ใน transaction เดียว ไม่เพิ่ม environment variable และไม่ใช้ PostgreSQL สำหรับรูปวาด

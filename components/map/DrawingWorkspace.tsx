@@ -2,17 +2,27 @@
 
 import {useEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from "react";
 import {useMap} from "react-map-gl/maplibre";
+import {drawingStorage} from "@/lib/gis/drawing-storage";
+import {DrawingShareControls} from "@/components/map/DrawingShareControls";
+import {usePublicDrawings} from "@/components/map/usePublicDrawings";
 import {DrawingToolbar} from "@/components/map/DrawingToolbar";
 import {defaultDrawingStyle,dragTools,textTools,shapePoints,screenBounds,transformPoints,MAX_DRAWINGS,MAX_DRAWING_POINTS,type Coordinate,type Drawing,type DrawingStyle,type DrawTool} from "@/lib/gis/drawing";
 import type {LayerDefinition} from "@/types/gis";
 
 type Gesture={start:Coordinate;original?:Drawing;resize?:boolean;points:Coordinate[]};
 
-export function DrawingWorkspace({open,onClose,layers,visible,opacity,onEnsureVisible,onCount}:{open:boolean;onClose:()=>void;layers:LayerDefinition[];visible:Record<string,boolean>;opacity:Record<string,number>;onEnsureVisible:()=>void;onCount:(count:number)=>void}) {
+export function DrawingWorkspace({open,onClose,layers,visible,opacity,onEnsureVisible,onCount,userId}:{open:boolean;onClose:()=>void;layers:LayerDefinition[];visible:Record<string,boolean>;opacity:Record<string,number>;onEnsureVisible:()=>void;onCount:(count:number)=>void;userId:string}) {
   const {current:map}=useMap();
   const svgRef=useRef<SVGSVGElement>(null);
   const [view,setView]=useState({width:1,height:1,zoom:0});
   const [drawings,setDrawings]=useState<Drawing[]>([]);
+  const [storageReady,setStorageReady]=useState(false);
+  const [storageMessage,setStorageMessage]=useState("กำลังอ่าน My Drawing บนเครื่อง…");
+  useEffect(()=>{let cancelled=false;drawingStorage(userId).then(result=>{if(!cancelled){setDrawings(result.drawings);setStorageReady(true);setStorageMessage(result.expiresAt?`เก็บถึง ${new Date(result.expiresAt).toLocaleDateString("th-TH")}`:"ยังไม่มีรูปวาดที่บันทึกบนเครื่อง");}}).catch(()=>{if(!cancelled){setStorageReady(true);setStorageMessage("อ่านข้อมูลบนเครื่องไม่สำเร็จ กรุณาลองเปิดหน้าใหม่");}});return ()=>{cancelled=true;};},[userId]);
+  async function saveLocal(){try{const result=await drawingStorage(userId,drawings);setStorageMessage(`บันทึกบนเครื่องแล้ว เก็บถึง ${new Date(result.expiresAt!).toLocaleDateString("th-TH")}`);}catch{setStorageMessage("บันทึกไม่สำเร็จ ตรวจสอบพื้นที่และขีดจำกัด 500 วัตถุ / 20,000 จุด / 1 MB");}}
+  const publicLayer=layers.find(layer=>layer.drawingDataKey==="public-drawing");
+  const publicVisible=!!publicLayer&&!!visible[publicLayer.id];
+  const publicData=usePublicDrawings(publicLayer,publicVisible);
   const [history,setHistory]=useState<Drawing[][]>([]);
   const [future,setFuture]=useState<Drawing[][]>([]);
   const [tool,setTool]=useState<DrawTool>("select");
@@ -26,7 +36,7 @@ export function DrawingWorkspace({open,onClose,layers,visible,opacity,onEnsureVi
   const localLayer=layers.find(layer=>layer.drawingDataKey==="my-drawing");
   const layerVisible=!!localLayer&&!!visible[localLayer.id]&&view.zoom>=localLayer.minZoom&&view.zoom<localLayer.maxZoom;
   const selected=layerVisible?drawings.find(d=>d.id===selectedId):undefined;
-  const effectiveTool=open?tool:"pan";
+  const effectiveTool=open&&storageReady?tool:"pan";
   const capturing=effectiveTool!=="select"&&effectiveTool!=="pan"&&effectiveTool!=="eraser";
   const currentStyle=selected?.style??style;
   const currentText=selected?.text??text;
@@ -39,15 +49,15 @@ export function DrawingWorkspace({open,onClose,layers,visible,opacity,onEnsureVi
     return ()=>{map.off("move",refresh);map.off("resize",refresh);};
   },[map]);
   useEffect(()=>{onCount(drawings.length);},[drawings.length,onCount]);
-  const enabled=open&&layerVisible;
+  const enabled=open&&storageReady&&layerVisible;
   const [previousEnabled,setPreviousEnabled]=useState(enabled);
   if(previousEnabled!==enabled){setPreviousEnabled(enabled);setDraft([]);setPreview(null);setSelectedId(null);}
   useEffect(()=>{if(!enabled)gesture.current=null;},[enabled]);
 
   const project=(point:Coordinate):Coordinate=>{const p=map!.project(point);return [p.x,p.y];};
-  const unproject=(point:Coordinate):Coordinate=>{const p=map!.unproject(point);return [p.lng,Math.max(-85.051129,Math.min(85.051129,p.lat))];};
+  const unproject=(point:Coordinate):Coordinate=>{const p=map!.unproject(point);return [((p.lng+180)%360+360)%360-180,Math.max(-85.051129,Math.min(85.051129,p.lat))];};
   function position(event:ReactPointerEvent):Coordinate {const bounds=svgRef.current!.getBoundingClientRect();return [event.clientX-bounds.left,event.clientY-bounds.top];}
-  function commit(next:Drawing[]) {setHistory(old=>[...old,drawings].slice(-50));setFuture([]);setDrawings(next);}
+  function commit(next:Drawing[]) {if(!storageReady)return;setStorageMessage("มีการแก้ไขที่ยังไม่บันทึกบนเครื่อง");setHistory(old=>[...old,drawings].slice(-50));setFuture([]);setDrawings(next);}
   function cancel(){gesture.current=null;setDraft([]);setPreview(null);setMessage("");}
   function undo(){cancel();if(!history.length)return;setFuture(old=>[drawings,...old]);setDrawings(history[history.length-1]);setHistory(old=>old.slice(0,-1));setSelectedId(null);}
   function redo(){cancel();if(!future.length)return;setHistory(old=>[...old,drawings]);setDrawings(future[0]);setFuture(old=>old.slice(1));setSelectedId(null);}
@@ -133,7 +143,7 @@ export function DrawingWorkspace({open,onClose,layers,visible,opacity,onEnsureVi
     if(!map||!d.points.length)return null;
     const points=d.points.map(project),first=points[0],last=points[points.length-1];
     const isText=textTools.includes(d.tool),closed=["polygon","rectangle","circle"].includes(d.tool);
-    const interactive=!temporary&&open&&(tool==="select"||tool==="eraser");
+    const interactive=!temporary&&open&&storageReady&&(tool==="select"||tool==="eraser");
     const width=d.tool==="highlighter"?Math.max(16,d.style.width*6):d.style.width;
     const path=points.map(p=>p.join(",")).join(" ");
     const alpha=d.style.opacity*(d.tool==="highlighter"?.3:1);
@@ -169,9 +179,11 @@ export function DrawingWorkspace({open,onClose,layers,visible,opacity,onEnsureVi
   }
   return <>
     <svg ref={svgRef} aria-label="พื้นที่วาดบนแผนที่" className="absolute inset-0 z-10" width={view.width} height={view.height} style={{pointerEvents:capturing?"auto":"none",touchAction:effectiveTool==="pan"?"auto":"none",cursor:capturing?"crosshair":undefined}} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={()=>cancel()} onLostPointerCapture={()=>{if(gesture.current)cancel();}} onDoubleClick={event=>{if(capturing){event.stopPropagation();event.preventDefault();}}}>
+      {publicVisible&&<g opacity={publicLayer?opacity[publicLayer.id]??1:1}>{publicData.drawings.map(d=>renderDrawing(d,true))}</g>}
       <g opacity={localLayer?opacity[localLayer.id]??1:1}>{layerVisible&&shown.map(d=>renderDrawing(d))}{open&&layerVisible&&preview&&!drawings.some(d=>d.id===preview.id)&&renderDrawing(preview,true)}{open&&layerVisible&&draft.length>0&&renderDrawing({...create(draft),id:"draft"},true)}</g>
       {open&&layerVisible&&selectionBox()}
     </svg>
-    {open&&<DrawingToolbar tool={tool} onTool={changeTool} style={currentStyle} onStyle={changeStyle} text={currentText} onText={changeText} selected={!!selected} selectedTool={selected?.tool} selectedPoints={selection?.points} onDelete={remove} onClose={()=>{cancel();onClose();}} onFinish={finish} onCancel={cancel} canFinish={canFinish} hasDraft={draft.length>0} undo={undo} redo={redo} canUndo={history.length>0} canRedo={future.length>0} message={message} count={drawings.length}/>}
+    {publicVisible&&<p role={publicData.error?"alert":"status"} className="pointer-events-none absolute bottom-10 left-3 z-10 rounded bg-white/90 px-2 py-1 text-xs text-slate-700">{publicData.message}</p>}
+    {open&&<DrawingToolbar tool={tool} onTool={changeTool} style={currentStyle} onStyle={changeStyle} text={currentText} onText={changeText} selected={!!selected} selectedTool={selected?.tool} selectedPoints={selection?.points} onDelete={remove} onClose={()=>{cancel();onClose();}} onFinish={finish} onCancel={cancel} canFinish={canFinish} hasDraft={draft.length>0} undo={undo} redo={redo} canUndo={history.length>0} canRedo={future.length>0} message={message} count={drawings.length}><DrawingShareControls drawings={drawings} selected={selected} ready={storageReady} onSave={saveLocal} storageMessage={storageMessage}/></DrawingToolbar>}
   </>;
 }

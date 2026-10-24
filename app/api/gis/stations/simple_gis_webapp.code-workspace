@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../toolbox_service"
+		},
+		{
+			"path": "../../../../../toolbox_sdk"
+		}
+	],
+	"settings": {}
+}

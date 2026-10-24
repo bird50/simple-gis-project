@@ -1,3 +1,4 @@
+import {AUTH_ENABLED} from "./mode";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import type { SessionUser } from "@/types/auth";
@@ -10,6 +11,7 @@ export async function createSession(user:SessionUser, remember=false) {
 }
 export async function destroySession(){ (await cookies()).delete(COOKIE); }
 export async function getSession():Promise<SessionUser|null>{
+  if(!AUTH_ENABLED)return null;
   const token=(await cookies()).get(COOKIE)?.value; if(!token)return null;
   try { const {payload}=await jwtVerify(token,key()); return payload as unknown as SessionUser; } catch { return null; }
 }

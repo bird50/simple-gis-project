@@ -1,1 +1,2 @@
-import {NextResponse} from "next/server";import {getSession} from "@/lib/auth/session";import {layerRegistry} from "@/config/layers";export async function GET(){const user=await getSession();return NextResponse.json(layerRegistry.filter(l=>l.accessLevel==="PUBLIC"||(user&&l.accessLevel==="MEMBER")||(user?.role==="ADMIN")))}
+import {AUTH_ENABLED,guestWorkspaceUser} from "@/lib/auth/mode";
+import {NextResponse} from "next/server";import {getSession} from "@/lib/auth/session";import {layerRegistry} from "@/config/layers";export async function GET(){const user=AUTH_ENABLED?await getSession():guestWorkspaceUser;return NextResponse.json(layerRegistry.filter(l=>l.accessLevel==="PUBLIC"||(user&&l.accessLevel==="MEMBER")||(user?.role==="ADMIN")))}

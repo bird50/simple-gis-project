@@ -1,32 +1,18 @@
 "use client";
-
-import {PencilRuler,Camera,PanelRightClose,Wrench,Settings} from "lucide-react";
-import type {PublicPhotoStatus} from "@/components/map/PhotoLayers";
-import type {LayerDefinition} from "@/types/gis";
+import {PanelRightClose,Wrench} from "lucide-react";
+import {PanelSplitter} from "@/components/map/PanelSplitter";
 import {Button} from "@/components/ui/button";
-import {Switch} from "@/components/ui/switch";
-
-export function MapToolbox({onClose,hidden,count,layerVisible,onLayerVisible,publicVisible,onPublicVisible,publicStatus,onPublicSettings,publicSettingsOpen,filterCount,drawingLayers,visible,onDrawingVisible,drawingToolbarOpen,onDrawingToolbarChange,drawingCount}:{onClose:()=>void;hidden:boolean;count:number;layerVisible:boolean;onLayerVisible:(visible:boolean)=>void;publicVisible:boolean;onPublicVisible:(visible:boolean)=>void;publicStatus:PublicPhotoStatus;onPublicSettings:(trigger:HTMLButtonElement)=>void;publicSettingsOpen:boolean;filterCount:number;drawingLayers:LayerDefinition[];visible:Record<string,boolean>;onDrawingVisible:(id:string,visible:boolean)=>void;drawingToolbarOpen:boolean;onDrawingToolbarChange:(open:boolean)=>void;drawingCount:number}) {
-  return <aside hidden={hidden} id="map-toolbox" aria-label="Toolbox" className={`${hidden?"hidden":"flex"} absolute inset-y-0 right-0 z-30 w-[min(288px,calc(100vw-48px))] shrink-0 flex-col border-l border-slate-200 bg-white shadow-xl xl:relative xl:w-72 xl:shadow-none`}>
+import {ToolboxHost} from "@/components/map/ToolboxHost";
+import {toolboxRegistry} from "@/config/toolboxes";
+import type {WebmapHost} from "@/lib/webmap/contracts";
+import type {WorkspaceToolServices} from "@/components/map/toolboxes/workspace";
+export function MapToolbox(props:WorkspaceToolServices & {host:WebmapHost;width:number;maxWidth:number;onWidthChange:(width:number)=>void}) {
+  return <aside hidden={props.hidden} id="map-toolbox" aria-label="Toolbox" style={{width:`min(${props.width}px, calc(100vw - 48px))`}} className={`${props.hidden?"hidden":"flex"} absolute inset-y-0 right-0 z-30 w-[min(288px,calc(100vw-48px))] shrink-0 flex-col border-l border-slate-200 bg-white shadow-xl xl:relative xl:w-72 xl:shadow-none`}>
+    <PanelSplitter label="ปรับความกว้าง Toolbox" axis="x" direction={-1} value={props.width} min={240} max={props.maxWidth} onChange={props.onWidthChange} className="left-0"/>
     <div className="flex shrink-0 items-center justify-between border-b border-slate-200 p-4">
       <div><h2 className="flex items-center gap-2 text-sm font-semibold"><Wrench className="size-4 text-teal-700"/>Toolbox</h2><p className="mt-1 text-[11px] text-slate-500">เครื่องมือสำหรับพื้นที่ปฏิบัติงาน</p></div>
-      <Button variant="ghost" size="icon" className="size-8" aria-label="ซ่อน Toolbox" aria-expanded={true} aria-controls="map-toolbox" onClick={onClose}><PanelRightClose/></Button>
+      <Button variant="ghost" size="icon" className="size-8" aria-label="ซ่อน Toolbox" aria-expanded={true} aria-controls="map-toolbox" onClick={props.onClose}><PanelRightClose/></Button>
     </div>
-    <div className="min-h-0 flex-1 overflow-y-auto space-y-4 p-4">
-      <section aria-labelledby="photo-tool-title" className="overflow-hidden rounded-xl border border-slate-200">
-        <h3 id="photo-tool-title" className="flex items-center gap-2 border-b border-slate-100 p-3 text-sm font-semibold"><Camera className="size-4 text-teal-700"/>Photo</h3>
-        <div className="flex items-center justify-between gap-2 p-3"><label htmlFor="my-photos-layer" className="text-xs font-semibold">Layer My Photos <span className="font-normal text-slate-500">({count})</span></label><Switch id="my-photos-layer" checked={layerVisible} onCheckedChange={onLayerVisible}/></div>
-        <p className="px-3 pb-3 text-[10px] leading-5 text-slate-500">เก็บรูปบนเบราว์เซอร์นี้ 15 วันนับจากวันที่เพิ่ม ไม่อัปโหลดไปเซิร์ฟเวอร์</p>
-        <div className="border-t border-slate-100 p-3"><div className="flex items-center justify-between gap-2"><label htmlFor="public-photos-layer" className="text-xs font-semibold">Layer Public Photos <span className="font-normal text-slate-500">{publicVisible?`(${publicStatus.count})`:""}</span></label><Button id="toolbox-public-photos-settings" variant="ghost" size="icon" className="size-7 shrink-0 text-sky-600" aria-label="ตั้งค่า Public Photos" aria-haspopup="dialog" aria-expanded={publicSettingsOpen} onClick={event=>onPublicSettings(event.currentTarget)}><Settings/></Button><Switch id="public-photos-layer" checked={publicVisible} onCheckedChange={onPublicVisible}/></div><p className="mt-2 text-[10px] leading-5 text-slate-500">ภาพที่แชร์สาธารณะในพื้นที่แผนที่ปัจจุบัน{filterCount>0&&` · ใช้เงื่อนไขค้นหา ${filterCount} รายการ`}</p>{publicVisible&&<p role={publicStatus.error?"alert":"status"} className={`mt-1 text-[11px] leading-5 ${publicStatus.error?"text-amber-700":"text-slate-500"}`}>{publicStatus.loading?"กำลังโหลด Public Photos…":publicStatus.error|| (publicStatus.hasMore?"มีภาพเพิ่มเติม กรุณาซูมเข้าเพื่อดูครบ":!publicStatus.count?"ไม่พบภาพ Public ในพื้นที่นี้":"")}</p>}</div>
-      </section>
-      <section aria-labelledby="draw-tool-title" className="overflow-hidden rounded-xl border border-slate-200">
-        <h3 id="draw-tool-title" className="flex items-center gap-2 border-b border-slate-100 p-3 text-sm font-semibold"><PencilRuler className="size-4 text-teal-700"/>Draw</h3>
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 p-3"><label htmlFor="drawing-toolbar-toggle" className="text-xs font-semibold">Drawing Toolbar</label><Switch id="drawing-toolbar-toggle" aria-controls="drawing-toolbar" checked={drawingToolbarOpen} onCheckedChange={onDrawingToolbarChange}/></div>
-        {drawingLayers.map(layer=><div key={layer.id} className="border-b border-slate-100 p-3 last:border-b-0">
-          <div className="flex items-center justify-between gap-2"><label htmlFor={`toolbox-${layer.id}`} className="flex items-center gap-2 text-xs font-semibold"><PencilRuler className="size-4 shrink-0" style={{color:layer.color}}/>Layer {layer.title}</label><Switch id={`toolbox-${layer.id}`} checked={!!visible[layer.id]} onCheckedChange={checked=>onDrawingVisible(layer.id,checked)}/></div>
-          {visible[layer.id]&&<p role="status" className="mt-2 text-[11px] leading-5 text-slate-500">{layer.drawingDataKey==="my-drawing"&&drawingCount>0?`${drawingCount} วัตถุ · เก็บชั่วคราวในหน้านี้`:`ยังไม่มีข้อมูล ${layer.title}`}</p>}
-        </div>)}
-      </section>
-    </div>
+    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4"><ToolboxHost tools={toolboxRegistry} host={props.host} services={props}/></div>
   </aside>;
 }

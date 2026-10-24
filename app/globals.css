@@ -9,3 +9,45 @@
 .gis-workspace .maplibregl-ctrl-group{border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 4px 14px #0f172a0d;overflow:hidden}
 .gis-workspace .maplibregl-popup-content{border-radius:12px;padding:16px;box-shadow:0 8px 30px #0f172a26}
 .gis-workspace input[type=range]{accent-color:var(--brand)}
+
+/* Floating layer palette: charcoal glass, bright active rows and eye controls. */
+.gis-workspace .layer-panel{color:#e2e5ec;border-color:#626b76;background:linear-gradient(125deg,#3d424b 0%,#293b52 58%,#303b31 100%);box-shadow:0 14px 40px #0f172a40,inset 0 1px 0 #ffffff12;backdrop-filter:blur(20px);--background:#2b303b;--foreground:#e2e5ec;--input:#47515f;--accent:#3b4554;--accent-foreground:#f1f5f9;--ring:#20baff;--brand:#20baff;color-scheme:dark}
+.layer-panel>div{border-color:#ffffff0d}
+.layer-panel .text-slate-500,.layer-panel .text-slate-400{color:#a5b2c4}
+.layer-panel .text-teal-700,.layer-panel .text-sky-600{color:#20baff}
+.layer-panel .bg-teal-50{background:#20baff18;color:#76d5ff}
+.layer-panel .bg-slate-50{background:#272e3a;color:#e2e5ec}
+.layer-panel .border-slate-200{border-color:#ffffff16}
+.layer-panel input:not([type=range]){color:#e2e5ec;border-color:#ffffff14;background:#272e3a}
+.layer-panel input::placeholder{color:#a5b2c4}
+.layer-panel button:hover:not(:disabled){background-color:#ffffff0a}
+.layer-panel .layer-row{border-color:transparent;min-height:38px}
+.layer-panel .layer-row-active{background:#2b303b;border-color:#ffffff06;box-shadow:inset 0 1px 0 #ffffff03}
+.layer-panel .layer-row-inactive{color:#a5b2c4;background:transparent}
+.layer-panel .layer-row-inactive .layer-symbol{color:#8d9db3}
+.layer-panel .layer-row label{font-size:10px}
+.layer-panel .layer-row label span{font-size:10px}
+.layer-panel .layer-row-active .layer-visibility{color:#20baff}
+.layer-panel .layer-row-inactive .layer-visibility{color:#8d9db3}
+.layer-panel .layer-visibility:disabled{opacity:.45}
+.layer-panel .border-teal-100{border-color:#ffffff0c}
+.layer-panel input[type=range]{accent-color:#20baff}
+.layer-panel select{background:#2b303b;color:#e2e5ec;border-color:#ffffff16}
+.layer-panel select option{background:#2b303b;color:#e2e5ec}
+.layer-panel :focus-visible{outline-color:#20baff}
+.layer-panel ::-webkit-scrollbar{width:5px}
+.layer-panel ::-webkit-scrollbar-thumb{background:#ffffff24;border-radius:8px}
+
+/* Accessible splitters support mouse, touch and arrow keys. */
+.panel-splitter{position:absolute;z-index:40;touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;outline:none}
+.panel-splitter-x{top:0;bottom:0;width:10px;cursor:col-resize}
+.panel-splitter-y{left:0;right:0;height:10px;cursor:row-resize}
+.panel-splitter span{border-radius:999px;background:#94a3b866;transition:background .15s}
+.panel-splitter-x span{width:3px;height:36px}
+.panel-splitter-y span{height:3px;width:36px}
+.panel-splitter:hover,.panel-splitter:focus-visible{background:#0ea5e920}
+.panel-splitter:hover span,.panel-splitter:focus-visible span{background:#0ea5e9}
+
+/* Layer origin remains visible in both enabled and disabled states. */
+.layer-panel .layer-row-toolbox{border-left:3px solid #fb923c}
+.layer-panel .layer-row-standard{border-left:3px solid #20baff}

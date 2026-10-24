@@ -1,6 +1,7 @@
 "use client";
 
 import {MousePointer2,Hand,Pencil,Highlighter,Eraser,MapPin,Minus,Hexagon,RectangleHorizontal,Circle,MoveUpRight,Type,Square,MessageSquare,Tag,StickyNote,ListOrdered,List,Undo2,Redo2,Trash2,X,Check} from "lucide-react";
+import type {ReactNode} from "react";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {textTools,type Coordinate,type DrawTool,type DrawingStyle} from "@/lib/gis/drawing";
@@ -11,14 +12,14 @@ const groups=[
 ] as const;
 const hints:Record<DrawTool,string>={select:"คลิกวัตถุเพื่อเลือก ลากเพื่อย้าย ลากจุดมุมล่างขวาเพื่อปรับขนาด",pan:"ลากเพื่อเลื่อนแผนที่",pen:"ลากเมาส์หรือนิ้วเพื่อวาดเส้นอิสระ",highlighter:"ลากเพื่อเน้นพื้นที่ด้วยสีโปร่งใส",eraser:"คลิกวัตถุที่ต้องการลบ",point:"คลิกบนแผนที่เพื่อเพิ่มจุด",line:"คลิกเพิ่มจุด แล้วกดเสร็จสิ้น หรือ Enter",polygon:"คลิกอย่างน้อย 3 จุด แล้วกดเสร็จสิ้น หรือ Enter",rectangle:"ลากจากมุมหนึ่งไปอีกมุมหนึ่ง",circle:"ลากจากจุดศูนย์กลางไปยังขอบวงกลม",arrow:"ลากจากต้นลูกศรไปยังปลายลูกศร",text:"กรอกข้อความ แล้วคลิกตำแหน่งบนแผนที่",textbox:"กรอกข้อความ แล้วคลิกเพื่อวางกล่องข้อความ",callout:"กรอกข้อความ แล้วลากจากจุดที่ต้องการชี้ไปยังตำแหน่งข้อความ",label:"กรอกชื่อ แล้วคลิกตำแหน่งที่ต้องการติดป้าย",sticky:"กรอกบันทึก แล้วคลิกเพื่อวางโน้ต",number:"คลิกเพื่อเพิ่มหมุดหมายเลขตามลำดับ",legend:"ใส่คำอธิบายหนึ่งรายการต่อบรรทัด แล้วคลิกเพื่อวาง Legend"};
 
-export function DrawingToolbar({tool,onTool,style,onStyle,text,onText,selected,selectedTool,selectedPoints,onDelete,onClose,onFinish,onCancel,canFinish,hasDraft,undo,redo,canUndo,canRedo,message,count}:{
-  tool:DrawTool;onTool:(tool:DrawTool)=>void;style:DrawingStyle;onStyle:(style:DrawingStyle)=>void;text:string;onText:(text:string)=>void;selected:boolean;selectedTool?:DrawTool;selectedPoints?:Coordinate[];onDelete:()=>void;onClose:()=>void;onFinish:()=>void;onCancel:()=>void;canFinish:boolean;hasDraft:boolean;undo:()=>void;redo:()=>void;canUndo:boolean;canRedo:boolean;message:string;count:number;
+export function DrawingToolbar({tool,onTool,style,onStyle,text,onText,selected,selectedTool,selectedPoints,onDelete,onClose,onFinish,onCancel,canFinish,hasDraft,undo,redo,canUndo,canRedo,message,count,children}:{
+  tool:DrawTool;onTool:(tool:DrawTool)=>void;style:DrawingStyle;onStyle:(style:DrawingStyle)=>void;text:string;onText:(text:string)=>void;selected:boolean;selectedTool?:DrawTool;selectedPoints?:Coordinate[];onDelete:()=>void;onClose:()=>void;onFinish:()=>void;onCancel:()=>void;canFinish:boolean;hasDraft:boolean;undo:()=>void;redo:()=>void;canUndo:boolean;canRedo:boolean;message:string;count:number;children?:ReactNode;
 }) {
   const editingTool=selectedTool??tool;
   const isText=textTools.includes(editingTool);
   const fieldClass="h-8 w-full rounded-md border border-input bg-white px-2 text-xs";
   return <section id="drawing-toolbar" aria-label="Drawing Toolbar" className="pointer-events-auto absolute right-14 top-14 z-20 max-h-[calc(100%-72px)] w-[224px] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg" onPointerDown={event=>event.stopPropagation()} onDoubleClick={event=>event.stopPropagation()} onWheel={event=>event.stopPropagation()}>
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2"><div><h2 className="text-xs font-semibold">Drawing Toolbar</h2><p className="mt-1 text-[10px] text-slate-500">เก็บชั่วคราว · รีเฟรชแล้วหาย</p></div><Button variant="ghost" size="icon" className="size-7" aria-label="ปิดเครื่องมือวาด" onClick={onClose}><X/></Button></header>
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2"><div><h2 className="text-xs font-semibold">Drawing Toolbar</h2><p className="mt-1 text-[10px] text-slate-500">บันทึกบนเครื่องได้ 15 วัน</p></div><Button variant="ghost" size="icon" className="size-7" aria-label="ปิดเครื่องมือวาด" onClick={onClose}><X/></Button></header>
     <div className="space-y-3 p-3">
       {selectedPoints&&selectedPoints.length>0&&<section aria-label="พิกัดวัตถุที่เลือก" className="rounded-lg border border-red-100 bg-red-50/50 p-2">
         <h3 className="text-[11px] font-semibold">พิกัดวัตถุที่เลือก</h3>
@@ -45,8 +46,9 @@ export function DrawingToolbar({tool,onTool,style,onStyle,text,onText,selected,s
         </>}
       </div>
       <div className="flex gap-1 border-t pt-2"><Button variant="outline" size="icon" aria-label="ย้อนกลับ" title="ย้อนกลับ (Ctrl/Cmd+Z)" disabled={!canUndo} onClick={undo}><Undo2/></Button><Button variant="outline" size="icon" aria-label="ทำซ้ำ" disabled={!canRedo} onClick={redo}><Redo2/></Button><Button variant="outline" size="icon" aria-label="ลบวัตถุที่เลือก" disabled={!selected} onClick={onDelete}><Trash2/></Button></div>
+      {children}
       <p role="status" className="text-[11px] text-amber-700">{message}</p>
-      <p className="text-[10px] leading-4 text-slate-500">{count} วัตถุ · เก็บชั่วคราวในหน้านี้ รีเฟรชแล้วหาย</p>
+      <p className="text-[10px] leading-4 text-slate-500">{count} วัตถุ · กดบันทึก My Drawing เพื่อเก็บบนเครื่อง</p>
     </div>
   </section>;
 }

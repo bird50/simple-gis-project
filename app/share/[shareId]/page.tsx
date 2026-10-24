@@ -2,12 +2,17 @@ import Link from "next/link";
 import {notFound} from "next/navigation";
 import {z} from "zod";
 import {Camera,MapPin,CalendarDays} from "lucide-react";
-import {db} from "@/lib/db";
+import {toolboxFetch} from "@/lib/toolbox/service";
+const shareSchema=z.object({eventName:z.string(),tags:z.array(z.string()),photos:z.array(z.object({id:z.string(),name:z.string(),latitude:z.number(),longitude:z.number(),capturedAt:z.string(),capturedOffset:z.string().nullable()}))});
 export const dynamic="force-dynamic";
 export default async function PublicPhotoShare({params}:{params:Promise<{shareId:string}>}) {
   const {shareId}=await params;
-  if(!z.string().cuid().safeParse(shareId).success)notFound();
-  const result=await db.photoShare.findFirst({where:{id:shareId,published:true},select:{eventName:true,tags:true,photos:{orderBy:{sortOrder:"asc"},take:10,select:{id:true,name:true,latitude:true,longitude:true,capturedAt:true,capturedOffset:true}}}}).then(share=>({share,unavailable:false})).catch(()=>({share:null,unavailable:true}));
+  if(!z.string().uuid().safeParse(shareId).success)notFound();
+  const result=await toolboxFetch(`/shares/${shareId}`).then(async response=>{
+    if(response.status===404)return {share:null,unavailable:false};
+    if(!response.ok)throw new Error("Service unavailable");
+    return {share:shareSchema.parse(await response.json()),unavailable:false};
+  }).catch(()=>({share:null,unavailable:true}));
   if(result.unavailable)return <main className="shell py-16"><h1 className="text-xl font-semibold">ไม่สามารถโหลดภาพได้ในขณะนี้</h1><p className="mt-3 text-slate-500">กรุณาลองเปิดลิงก์นี้อีกครั้งภายหลัง</p></main>;
   if(!result.share)notFound();
   const share=result.share;
