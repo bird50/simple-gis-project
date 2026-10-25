@@ -3,6 +3,7 @@ import {SignJWT,jwtVerify} from "jose";
 import {AUTH_ENABLED} from "@/lib/auth/mode";
 import {requireUser} from "@/lib/auth/permissions";
 import {db} from "@/lib/db";
+import {clientAddress,publicationByAddress,tooManyRequests} from "@/lib/security/rate-limit";
 
 export async function toolboxFetch(path:string,init:RequestInit={}) {
   const key=process.env.TOOLBOX_SERVICE_KEY;
@@ -29,6 +30,8 @@ export async function proxyToolbox(request:Request,path:string,privateRoute=fals
       if(origin&&new URL(origin).origin!==new URL(request.url).origin)return Response.json({error:"ไม่อนุญาตคำขอจากเว็บไซต์อื่น"},{status:403});
       if(request.headers.get("sec-fetch-site")==="cross-site")return Response.json({error:"ไม่อนุญาตคำขอจากเว็บไซต์อื่น"},{status:403});
     }
+    // Publishing is the only write path open to guests; bound it before reading up to 25 MB of body.
+    if(privateRoute&&request.method!=="GET"){const limited=publicationByAddress.take(clientAddress(request));if(!limited.ok)return tooManyRequests(limited.retryAfter);}
     const headers:Record<string,string>={};
     if(privateRoute){const owner=await ownerHeaders();if(owner instanceof Response)return owner;Object.assign(headers,owner);}
     let body:Uint8Array|undefined;

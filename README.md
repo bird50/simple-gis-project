@@ -33,7 +33,7 @@ npm run dev
 | Variable         | Purpose                                                       |
 | ---------------- | ------------------------------------------------------------- |
 | `DATABASE_URL`   | PostgreSQL connection string                                  |
-| `AUTH_SECRET`    | secret สำหรับลงนาม session; ต้องสุ่มและห้าม commit            |
+| `AUTH_SECRET`    | secret สำหรับลงนาม session; ต้องสุ่มอย่างน้อย 32 ตัวอักษรและห้าม commit — production ปฏิเสธค่าว่าง สั้น หรือค่าตัวอย่าง |
 | `NEXTAUTH_URL`   | canonical application URL (เตรียมไว้สำหรับ Auth.js migration) |
 | `ADMIN_EMAIL`    | email ของ initial admin                                       |
 | `ADMIN_PASSWORD` | initial admin password ขั้นต่ำ 12 ตัวอักษร                    |
@@ -45,7 +45,9 @@ npm run dev
 - `MEMBER`: `/gis`, `/profile` และ GIS APIs
 - `ADMIN`: ทุกสิทธิ์ของ MEMBER พร้อม `/admin/*` และ `/api/admin/*`
 - ผู้สมัครเองจะเป็น `MEMBER` เสมอ สถานะ `INACTIVE` และ `SUSPENDED` ไม่สามารถ login
-- การ “ลบ” ผู้ใช้ควรเปลี่ยน status เป็น `INACTIVE`; API ป้องกันการลดสิทธิ์ admin คนสุดท้าย
+- การ “ลบ” ผู้ใช้ควรเปลี่ยน status เป็น `INACTIVE`; API ป้องกันการลดสิทธิ์หรือระงับ admin ที่ ACTIVE คนสุดท้าย ไม่ว่าจะแก้บัญชีตนเองหรือผู้อื่น (ตรวจและบันทึกใน serializable transaction)
+- cookie session ใช้ระบุตัวผู้ใช้เท่านั้น `getSession`/`requireUser`/`requireAdmin` อ่าน role และ status จากฐานข้อมูลทุกครั้ง ผู้ใช้ที่ถูกระงับหรือลดสิทธิ์จึงหมดสิทธิ์ทันที ส่วน `proxy.ts` ใช้ JWT เพื่อ redirect เบื้องต้นเท่านั้น
+- จำกัดอัตราคำขอในหน่วยความจำต่อ process: login 20 ครั้ง/15 นาที/IP และ 10 ครั้ง/15 นาที/ชื่อผู้ใช้, สมัคร 5 ครั้ง/ชั่วโมง/IP, เผยแพร่ Public Photos/Drawing 20 ครั้ง/ชั่วโมง/IP (ตอบ 429 พร้อม `Retry-After`) IP มาจาก `X-Forwarded-For` จึงต้องอยู่หลัง reverse proxy ที่เขียน header นี้ทับ และเมื่อรันหลาย instance ให้จำกัดที่ reverse proxy ด้วย
 
 ## Layer configuration
 
@@ -55,7 +57,7 @@ Basemap อยู่ที่ `config/basemaps.ts` และ registry อยู�
 
 `GET /api/gis/stations?bbox=minX,minY,maxX,maxY&province=เชียงใหม่&type=TELEMETRY&limit=500`
 
-Query ใช้ placeholders ทุกค่าและจำกัดผลสูงสุด 5,000 records. สำหรับชุดข้อมูลขนาดใหญ่ควรคืน MVT ตาม tile coordinate แทน GeoJSON.
+Query ใช้ placeholders ทุกค่า ใช้ connection pool ร่วม (`lib/db/pg.ts`) ตรวจ bbox ให้อยู่ในช่วง WGS84 และ west<east, south<north และจำกัดผลสูงสุด 5,000 records. สำหรับชุดข้อมูลขนาดใหญ่ควรคืน MVT ตาม tile coordinate แทน GeoJSON.
 
 ## Production
 
@@ -100,7 +102,7 @@ npm run dev
 - ล้างภาพในเครื่องที่หมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาที My Photos ใช้งานได้แม้ service ไม่พร้อม
 - **Save & Share Public** อัปโหลดเฉพาะไฟล์ที่เลือกจาก My Photos เป็น multipart `{eventName,tags,photos}` ครั้งละ 1–10 รูป รวม request ไม่เกิน 25 MB ตรวจ GPS/วันที่ถ่ายจาก EXIF ใหม่ แปลงเป็น JPEG ด้านยาวสูงสุด 2,400 px และถอด EXIF ส่วนเกิน บันทึก Public พร้อม audit ใน transaction และแท็ก `shareYYYY-MM-DD` เวลาไทย ภาพ Public ไม่หมดอายุตาม My Photos
 - `POST /api/photo-shares`: เมื่อเปิดระบบบัญชีใช้ requireUser และตรวจ ACTIVE; โหมดผู้เยี่ยมชมใช้ signed HTTP-only cookie ระบุผู้เผยแพร่ ไม่เกี่ยวกับการบันทึก/อ่าน My Photos ไม่มี My Photos API ในเว็บหรือ service
-- `GET /api/public/photos?bbox=west,south,east,north&limit=200`, `/share/[shareId]` และ `GET /api/photo-shares/[shareId]/photos/[photoId]`: PUBLIC ผ่าน proxy โดยไม่เปิดเผย service key
+- `GET /api/public/photos?bbox=west,south,east,north&limit=200`, `/share/[shareId]` และ `GET /api/photo-shares/[shareId]/photos/[photoId]`: PUBLIC ผ่าน proxy โดยไม่เปิดเผย service key; gateway ส่งต่อเฉพาะพารามิเตอร์ที่ผ่านการตรวจ (`lib/toolbox/public-query.ts`)
 - Public Photos โหลดตาม viewport แบบ debounce และยกเลิกคำขอเก่า จำกัด 1–200 รูปพร้อม `hasMore` รองรับข้ามเส้นวันที่ กรอง `username`, `eventName`, `tag`, `startDate`, `endDate` ด้วย OR ระหว่างเงื่อนไข โดยช่วงวันเป็นเงื่อนไขเดียว และยังบังคับ bbox ทุกครั้ง ใช้ SQL placeholders และ index
 - `capturedAt` เป็นเวลาตามกล้องและ `capturedOffset` เป็น timezone จาก EXIF ไม่ใช้เวลาอัปโหลดแทนวันที่ถ่าย
 
@@ -124,7 +126,7 @@ Toolbox → Draw → **Drawing Toolbar** เปิด/ปิดแถบเค�
 
 ## Webmap extensions
 
-Webmap มี API ส่วนขยายเวอร์ชัน `1.0` และ Toolbox registry ใน `config/toolboxes.tsx` แยก Photo/Draw เป็น panel และมี NavigationTool ตัวอย่างที่ใช้ API กลางโดยไม่ผูกกับ MapLibre การเพิ่ม GeoJSON ทั่วไปใช้ `render` ใน layer registry ได้ อ่านสัญญา วิธีเพิ่ม layer/toolbox และข้อกำหนดการนำไปใช้กับ Webmap อื่นใน [Webmap extension guide](docs/webmap-extensions.md)
+Toolbox ใช้ Tool API 2.0 ของ SDK: `config/toolboxes.tsx` เป็นรายการ plugin (Simple Data Files, Photo, Draw, มุมมองแผนที่) ซึ่งแต่ละตัวลงทะเบียน layer, state, overlay และ dialog ของตัวเอง ส่วน `config/layers.ts` เหลือเฉพาะ layer ระบบ การเพิ่ม GeoJSON ทั่วไปใช้ `render` ใน layer registry ได้ อ่านสัญญา วิธีเพิ่ม layer/toolbox และข้อกำหนดการนำไปใช้กับ Webmap อื่นใน [Webmap extension guide](docs/webmap-extensions.md)
 
 ## Temporary account-free mode
 
@@ -145,7 +147,7 @@ Toolbox → **Simple Data Files** → เฟือง **Layer My Data Files** �
 
 เก็บข้อมูลที่แปลงแล้วและ metadata ใน IndexedDB `thaiwater-data-files` แยกตาม user ID; โหมดผู้เยี่ยมชมใช้ namespace `guest-workspace-v1` ไม่อัปโหลดหรือสร้าง API ใหม่ เก็บ 15 วันนับจาก transaction บันทึกสำเร็จ การอ่านไม่ต่ออายุ ล้างข้อมูลหมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาทีระหว่างเปิดหน้า เมื่อปิดเว็บจะล้างครั้งถัดไปที่เปิด การล้างข้อมูลเว็บไซต์หรือ browser eviction อาจทำให้ข้อมูลหายก่อนกำหนด
 
-Renderer ใช้ registry `render.kind="mixed"` และ `render.dataKey="my-data-files"` สำหรับจุด เส้น และพื้นที่ร่วมกัน; `LayerDefinition.toolboxId` ระบุแหล่ง Toolbox เพื่อแสดงแถบสีส้ม โดยไม่เพิ่ม renderer ของ dataset เฉพาะใน GISMap
+plugin `dataFilesTool` วาดจุด เส้น และพื้นที่ร่วมกันผ่าน GeoJSON surface ของ map adapter โดยใช้ layer ID เดิม (`registry-my-data-files-*`) จึงคลิก Identify ได้และคงอยู่เมื่อเปลี่ยนแผนที่ฐาน แถบสีส้มใน sidebar มาจาก layer ที่มี owner เป็นเครื่องมือ และปุ่มเฟืองใน sidebar เปิด dialog เดียวกับ Toolbox ผ่าน `useLayerSettings`
 
 ตรวจ parser: `node --import tsx --test tests/data-files.test.ts`
 
@@ -155,6 +157,26 @@ Renderer ใช้ registry `render.kind="mixed"` และ `render.dataKey="my-
 
 - `POST /api/drawing-shares` ส่ง JSON `{name,drawings}` ผ่าน proxy ไป `/drawing-shares` ใน Toolbox; requireUser/ACTIVE เมื่อเปิดบัญชี หรือ signed guest identity ในโหมดปัจจุบัน พร้อม same-origin check ใช้ key เฉพาะฝั่งเซิร์ฟเวอร์
 - Zod ตรวจชนิดวัตถุ พิกัด WGS84 รูปทรงปิด สี hex และรูปแบบที่อนุญาต แชร์ 1–100 วัตถุ ไม่เกิน 20,000 จุด / 1 MB; การบันทึก My Drawing จำกัด 500 วัตถุ / 20,000 จุด / 1 MB ข้อความวัตถุละ 1,000 ตัวอักษร
-- `GET /api/public/drawings?bbox=west,south,east,north&limit=50` เป็น PUBLIC และ proxy ไป `/public/drawings` ค้นหากรอบรูปวาดที่ทับ viewport ด้วย indexed numeric bounds ใน SQLite รวม viewport ข้ามเส้นวันที่ จำกัด 50 วัตถุ / 20,000 จุด / ประมาณ 1 MB ต่อคำตอบ พร้อม `hasMore` ให้ซูมเข้า เป็นการค้นหากรอบ ไม่ใช่ exact geometry intersection
+- `GET /api/public/drawings?bbox=west,south,east,north&limit=50` เป็น PUBLIC และ proxy ไป `/public/drawings` ค้นหากรอบรูปวาดที่ทับ viewport ด้วย indexed numeric bounds ใน SQLite รวม viewport ข้ามเส้นวันที่ จำกัด 50 วัตถุ (gateway ปฏิเสธ `limit` เกิน 50) / 20,000 จุด / ประมาณ 1 MB ต่อคำตอบ พร้อม `hasMore` ให้ซูมเข้า เป็นการค้นหากรอบ ไม่ใช่ exact geometry intersection
 - ไม่ดึงข้อมูลทั้งชุดฐานข้อมูล; debounce 250 ms และยกเลิก request เก่า รองรับ loading/empty/error และปรับ opacity/visibility ผ่าน registry เดิม Public Drawing เป็น read-only ไม่แก้หรือลบด้วยเครื่องมือ My Drawing
 - SQLite เก็บ `drawing_shares`, `drawings`, `drawing_bounds` และ audit `DRAWING_SHARE_PUBLISHED` ใน transaction เดียว ไม่เพิ่ม environment variable และไม่ใช้ PostgreSQL สำหรับรูปวาด
+
+## Toolbox SDK และ 3 Panels
+
+โค้ดเครื่องมือที่ใช้ซ้ำอยู่ใน `../toolbox_sdk` เป็น npm package `@thaiwater/toolbox-sdk` เว็บติดตั้งด้วย local file dependency (`install-links=true`) ไม่ import source ด้วย alias ข้ามโครงการ ก่อนติดตั้งเว็บใน checkout ใหม่ให้มีโฟลเดอร์ SDK อยู่ข้างกัน และรัน `npm install` ใน SDK เพื่อสร้าง JavaScript/type declarations จากนั้นรัน `npm install` ในเว็บ
+
+- **Map Panel**: แอปเลือก map engine และ basemap; `<ToolOverlays/>` ภายใน MapLibreToolboxBridge แสดง overlay ของทุกเครื่องมือ (Data Files ผ่าน GeoJSON surface, Drawing SVG และ Photo markers/popup แบบ HTML ที่วางตำแหน่งผ่าน `MapAdapter.project` จึงไม่ผูกกับ MapLibre)
+- **Layer Panel**: ใช้ LayerRegistry ของ SDK เป็นสถานะกลาง visibility/opacity/ลำดับ/การลงทะเบียน (`useLayers()`) ทั้ง sidebar และ Toolbox อ่าน/เขียนสถานะชุดเดียวกัน เว็บนี้คงหน้าตา Layer Panel เดิม Layer ของเครื่องมืออยู่บนสุดตามลำดับ plugin
+- **Toolbox Panel**: `<ToolboxPanel/>` แสดงเครื่องมือตามสิทธิ์และความสามารถของแผนที่ (เครื่องมือขึ้นเมื่อแผนที่พร้อม) และ `<ToolDialogs/>` แสดงหน้าตั้งค่า ซึ่งเปิดได้ครั้งละหนึ่งหน้าต่าง ปรับตำแหน่งผ่าน CSS variables ได้
+
+`GET /api/gis/layers` และหน้า `/admin/layers` แสดงเฉพาะ layer ระบบใน `config/layers.ts` เพราะ layer ของ Toolbox ลงทะเบียนในเบราว์เซอร์โดย plugin
+
+`lib/toolbox/runtime.ts` ระบุ appId, storage และ gateway client ของเว็บนี้ ใช้ชื่อ IndexedDB เดิมอย่างชัดเจนเพื่ออ่านข้อมูลเดิมต่อได้ ไม่อัปโหลดหรือย้าย My Photos/My Drawing โดยอัตโนมัติ แอปใหม่เรียก `createBrowserStorage(appId)` จะได้ namespace แยกแอปและ schema v1; userId แยกเจ้าของภายในฐานข้อมูล
+
+เว็บใช้ SDK 1.0 ผ่าน entry ที่ประกาศไว้เท่านั้น (`@thaiwater/toolbox-sdk`, `/react`, `/maplibre`, `/storage`, `/core/*`) ไฟล์ compatibility re-export เดิมใน `components/map/` ถูกลบแล้ว ส่วน `lib/gis/{data-files,drawing,photo-gps,photo-share,public-photo-query}.ts` ยังเป็น re-export สำหรับโค้ดและ test ฝั่ง server; API routes และการตรวจสิทธิ์ยังอยู่ในเว็บ/Toolbox Service ไม่ย้าย secrets เข้า SDK ข้อความใน UI ของเครื่องมือมาจาก `thMessages` ของ SDK และสีเปลี่ยนได้ผ่าน CSS variables `--sdk-*` (ดู `../toolbox_sdk/README.md`)
+
+การแก้ SDK: รัน lint/build/test ใน `../toolbox_sdk`, อัปเดต package version เมื่อเปลี่ยน release แล้ว `npm install ../toolbox_sdk --install-links` ในเว็บ เพื่ออัปเดตสำเนาแพ็กเกจที่ติดตั้ง ไม่แก้ไฟล์ใน node_modules
+
+ก่อนและหลังเปลี่ยน SDK ให้ตรวจพฤติกรรม `/gis` ด้วยมือตาม [Toolbox regression checklist](docs/toolbox-regression-checklist.md) และบันทึกผลท้ายไฟล์
+
+ดูรายละเอียดใน `../toolbox_sdk/README.md` และแอปตัวอย่างอิสระ `../toolbox_sdk/examples/react-maplibre` กับ `../toolbox_sdk/examples/leaflet` (เครื่องมือชุดเดียวกันบน Leaflet) ซึ่งมี Map/Layer/Toolbox และไม่ import source ของ ThaiWater แอปตัวอย่างใช้พื้นหลังว่าง ไม่ต้องใช้ tile API key; Public API ต้องกำหนด gateway ของระบบปลายทาง

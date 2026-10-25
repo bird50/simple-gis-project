@@ -1,7 +1,9 @@
 import {AUTH_ENABLED} from "@/lib/auth/mode";
+import {authKey} from "@/lib/auth/secret";
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
+/** Lightweight redirects only; pages and APIs re-check the user against the database. */
 export async function proxy(req: NextRequest) {
   if (!AUTH_ENABLED) {
     if (req.nextUrl.pathname.startsWith("/gis")) return NextResponse.next();
@@ -14,12 +16,7 @@ export async function proxy(req: NextRequest) {
   if (!token) return NextResponse.redirect(login);
 
   try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(
-        process.env.AUTH_SECRET || "development-only-secret-change-me-now",
-      ),
-    );
+    const { payload } = await jwtVerify(token, authKey(), { algorithms: ["HS256"] });
 
     if (
       req.nextUrl.pathname.startsWith("/admin") &&
