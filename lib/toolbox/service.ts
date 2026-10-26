@@ -4,10 +4,21 @@ import {AUTH_ENABLED} from "@/lib/auth/mode";
 import {requireUser} from "@/lib/auth/permissions";
 import {db} from "@/lib/db";
 import {clientAddress,publicationByAddress,tooManyRequests} from "@/lib/security/rate-limit";
+import {MAX_DATA_SHARE_BYTES} from "@thaiwater/toolbox-sdk";
 
-export async function toolboxFetch(path:string,init:RequestInit={}) {
-  const key=process.env.TOOLBOX_SERVICE_KEY;
+/**
+ * Least privilege toward toolbox_service: reads (public lists, images, share pages) use the read-only key
+ * `TOOLBOX_SERVICE_READ_KEY`; publishing uses `TOOLBOX_SERVICE_KEY` (scopes read,write). Without a read key
+ * every call uses the read,write key, as before.
+ */
+export function serviceKey(method:string|undefined,env:Record<string,string|undefined>=process.env){
+  const write=!!method&&method.toUpperCase()!=="GET"&&method.toUpperCase()!=="HEAD";
+  const key=write?env.TOOLBOX_SERVICE_KEY:env.TOOLBOX_SERVICE_READ_KEY||env.TOOLBOX_SERVICE_KEY;
   if(!key||key.length<32)throw new Error("Toolbox service is not configured");
+  return key;
+}
+export async function toolboxFetch(path:string,init:RequestInit={}) {
+  const key=serviceKey(init.method);
   return fetch(new URL(path,process.env.TOOLBOX_SERVICE_URL??"http://127.0.0.1:4010"),{...init,cache:"no-store",signal:AbortSignal.timeout(30_000),headers:{...Object.fromEntries(new Headers(init.headers)),authorization:`Bearer ${key}`}});
 }
 async function ownerHeaders(){
@@ -46,7 +57,7 @@ export async function proxyToolbox(request:Request,path:string,privateRoute=fals
     if(privateRoute){const owner=await ownerHeaders();if(owner instanceof Response)return owner;Object.assign(headers,owner);}
     let body:Uint8Array|undefined;
     if(request.method!=="GET"){
-      const max=path==="/drawing-shares"?1024*1024:25*1024*1024;
+      const max=path==="/drawing-shares"?1024*1024:path==="/data-file-shares"?MAX_DATA_SHARE_BYTES:25*1024*1024;
       const reader=request.body?.getReader();if(!reader)return Response.json({error:"ไม่พบข้อมูล"},{status:400});
       const chunks:Uint8Array[]=[];let size=0;
       try{while(true){const part=await reader.read();if(part.done)break;size+=part.value.length;if(size>max){await reader.cancel();return Response.json({error:"ข้อมูลเกินขนาดที่อนุญาต"},{status:413});}chunks.push(part.value);}}finally{reader.releaseLock();}

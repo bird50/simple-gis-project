@@ -3,7 +3,7 @@ import {test} from "node:test";
 import {authKey} from "../lib/auth/secret";
 import {removesActiveAdmin} from "../lib/auth/admin-guard";
 import {clientAddress,createRateLimiter} from "../lib/security/rate-limit";
-import {publicDrawingSearch,publicPhotoSearch} from "../lib/toolbox/public-query";
+import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch} from "../lib/toolbox/public-query";
 import {stationBbox} from "../lib/gis/bbox";
 
 test("production refuses a missing, short or example AUTH_SECRET; development keeps a local fallback",()=>{
@@ -36,6 +36,8 @@ test("public searches forward only validated parameters and cap drawings at 50",
  assert.equal(photos?.toString(),"bbox=99%2C12%2C101%2C14&limit=20&tag=flood");
  assert.equal(publicPhotoSearch(new URLSearchParams("bbox=0,0,0,0")),null);
  assert.equal(publicDrawingSearch(new URLSearchParams("bbox=99,12,101,14&limit=200")),null);
+ assert.equal(publicDataFileSearch(new URLSearchParams("bbox=99,12,101,14&search=น้ำ&tag=survey&username=x&extra=1"))?.toString(),"bbox=99%2C12%2C101%2C14&limit=500&search=%E0%B8%99%E0%B9%89%E0%B8%B3&tag=survey");
+ for(const bad of ["bbox=99,12,101,14&limit=5000","bbox=1,2,3","bbox=99,12,101,14&tag="+"x".repeat(51)])assert.equal(publicDataFileSearch(new URLSearchParams(bad)),null,bad);
  assert.equal(publicDrawingSearch(new URLSearchParams("bbox=99,12,101,14&username=x"))?.toString(),"bbox=99%2C12%2C101%2C14&limit=50");
 });
 test("station bbox requires WGS84 ranges and ordered corners",()=>{
@@ -51,4 +53,14 @@ test("same-origin check uses the Host the browser targeted, so LAN IPs and domai
  assert.equal(sameOrigin("https://evil.example",request("192.168.1.117:3000")),false);
  assert.equal(sameOrigin("http://192.168.1.117:3001",request("192.168.1.117:3000")),false);
  assert.equal(sameOrigin("null",request("localhost:3000")),false);
+});
+test("gateway reads with the read-only service key and publishes with the read,write key",async()=>{
+ const {serviceKey}=await import("../lib/toolbox/service");
+ const write="w".repeat(40),read="r".repeat(40);
+ const both={TOOLBOX_SERVICE_KEY:write,TOOLBOX_SERVICE_READ_KEY:read};
+ for(const method of [undefined,"GET","get","HEAD"])assert.equal(serviceKey(method,both),read);
+ for(const method of ["POST","DELETE"])assert.equal(serviceKey(method,both),write);
+ assert.equal(serviceKey("GET",{TOOLBOX_SERVICE_KEY:write}),write,"no read key: reads fall back to the read,write key");
+ assert.throws(()=>serviceKey("POST",{TOOLBOX_SERVICE_READ_KEY:read}),"a read key never publishes");
+ assert.throws(()=>serviceKey("GET",{TOOLBOX_SERVICE_READ_KEY:"short"}));
 });

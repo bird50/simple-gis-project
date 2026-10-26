@@ -38,7 +38,9 @@ export function myTool():ToolPlugin {
 
 Layer ระบบ: เพิ่ม `LayerDefinition` ใน `config/layers.ts` โดยระบุ metadata, accessLevel, min/maxZoom, opacity, legend, popupFields และ `render: {kind:"fill"|"line"|"circle"}` สำหรับไฟล์ GeoJSON ขนาดเล็ก ใช้ `render.cluster:true` ได้สำหรับ circle
 
-ข้อมูล API ให้ provider ส่ง `FeatureCollection` ผ่าน `dataKey` เข้า RegistryLayers โดย provider รับผิดชอบ bbox validation, debounce/cancellation, ขนาดผลลัพธ์ และ loading/error/empty UI; renderer ไม่ดาวน์โหลด REST API ทั้งชุดเอง สถานีปัจจุบันยังคงใช้ข้อมูลสาธิตเดิมผ่าน dataKey `monitoring`
+ข้อมูล API ให้ provider ส่ง `FeatureCollection` ผ่าน `dataKey` เข้า RegistryLayers โดย provider รับผิดชอบ bbox validation, debounce/cancellation, ขนาดผลลัพธ์ และ loading/error/empty UI; renderer ไม่ดาวน์โหลด REST API ทั้งชุดเอง สถานีโหลดผ่าน `components/map/useStations.ts` (bbox ของแผนที่, debounce 300 ms, ยกเลิกคำขอเก่า, สูงสุด 500 จุด, ใช้ข้อมูลตัวอย่างเมื่อ API ตอบ error) แล้วส่งผ่าน dataKey `monitoring`
+
+ตารางข้อมูล: `components/map/LayerDataSources.tsx` ส่ง layer ระบบเข้า Data Panel ของ SDK ด้วย `useDataSource` — layer ที่มี `render.dataKey` ใช้ข้อมูลชุดเดียวกับแผนที่ ส่วนไฟล์ GeoJSON ขนาดเล็ก (`type:"GEOJSON"`, URL ขึ้นต้นด้วย `/`) โหลดครั้งเดียวเมื่อเปิด layer ครั้งแรก (สูงสุด 5,000 แถว) WMS/tiles ไม่มีแถวข้อมูล คอลัมน์เรียงตาม `popupFields` และหัวคอลัมน์ภาษาไทยอยู่ใน `fieldLabels` เครื่องมือของ Toolbox ส่งข้อมูลของตัวเองได้ด้วย `useDataSource` ใน Controller (Data Files ทำอยู่แล้ว)
 
 Layer ของ Toolbox มาจาก plugin (`my-data-files`, `my-photos`, `public-photos`, `my-drawing`, `public-drawing`) และมี `owner.toolId`; ปรับชื่อ/สี/สิทธิ์ได้ด้วย option ของ factory เช่น `drawTool({mine:{title:"..."}})` และต้องไม่ซ้ำกับ ID ใน `config/layers.ts` มิฉะนั้นเครื่องมือนั้นจะไม่ถูก mount และ Toolbox แสดงข้อความแจ้ง `GET /api/gis/layers` และหน้า `/admin/layers` แสดงเฉพาะ layer ระบบ
 

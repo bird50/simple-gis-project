@@ -22,14 +22,15 @@ bird_dev/
 
 - `config/toolboxes.tsx` — `toolPlugins` (module-level constant, Toolbox order), each imported from its `/tools/*` entry. Tool IDs keep the old `thaiwater.*` names.
 - `config/layers.ts` — system layers only. Tool layers are registered by plugins with `owner.toolId`; never add a tool layer ID here (the tool would refuse to mount).
+- `components/map/LayerDataSources.tsx` offers system layers to the SDK `DataPanel` (bottom Data Panel) via `useDataSource`; `components/map/useStations.ts` loads stations by map bbox and falls back to sample stations when PostGIS is down. Column headers come from `fieldLabels` in `config/layers.ts`.
 - `components/map/GISMap.tsx` — `GISRoot` creates one registry per user (`key={user.id}`) and wraps the workspace in `ToolboxProvider` (`toolLayers="start"`). The sidebar reads `useLayers()`, shows settings via `useLayerSettings`, and uses `layer.owner` for the orange accent/icons. `<ToolOverlays/>` sits inside `MapLibreToolboxBridge`; `<ToolDialogs/>` once.
 - `lib/toolbox/runtime.ts` keeps the legacy IndexedDB names (`thaiwater-my-photos`, `thaiwater-my-drawing`, `thaiwater-data-files`). Changing them loses users' saved browser data.
 
 ## Gateway to toolbox_service
 
 - `lib/toolbox/service.ts` `proxyToolbox` is the only path to the service: same-origin check (`sameOrigin` compares `Origin` with the Host / X-Forwarded-Host header, not `request.url`), publication rate limit, body size cap, owner headers, bearer key.
-- Routes: `app/api/photo-shares`, `app/api/drawing-shares`, `app/api/public/{photos,drawings}`, `app/api/photo-shares/[shareId]/photos/[photoId]`, page `app/share/[shareId]`. Public GETs forward only parameters validated by `lib/toolbox/public-query.ts`.
-- `TOOLBOX_SERVICE_KEY` stays server-side (never `NEXT_PUBLIC_*`) and must equal the service's `.env` value. Identity headers come from the gateway, never from the client.
+- Routes: `app/api/photo-shares`, `app/api/drawing-shares`, `app/api/data-file-shares`, `app/api/public/{photos,drawings,data-files}`, `app/api/photo-shares/[shareId]/photos/[photoId]`, page `app/share/[shareId]`. Public GETs forward only parameters validated by `lib/toolbox/public-query.ts`.
+- Keys stay server-side (never `NEXT_PUBLIC_*`). `serviceKey()` picks `TOOLBOX_SERVICE_READ_KEY` (scope `read`) for GET and `TOOLBOX_SERVICE_KEY` (scopes `read,write`) for publishing; without a read key, reads use the write key. Both are issued by `npm run key:create` in toolbox_service (or the write key equals the service's legacy `.env` key). `TOOLBOX_SERVICE_KEY` also signs guest publisher cookies, so rotating it re-issues guest identities. Identity headers come from the gateway, never from the client.
 
 ## Auth mode and security
 
