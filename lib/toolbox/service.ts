@@ -23,11 +23,21 @@ async function ownerHeaders(){
   if(!owner){owner=`guest:${crypto.randomUUID()}`;const token=await new SignJWT({}).setSubject(owner).setAudience("toolbox-guest").setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime("30d").sign(key);jar.set("toolbox_guest",token,{httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/",maxAge:30*86400});}
   return {"x-toolbox-owner":owner,"x-toolbox-username":encodeURIComponent("ผู้เยี่ยมชม")};
 }
+/**
+ * CSRF guard: the browser's Origin must name the host it sent the request to. Compare with the Host header
+ * (or X-Forwarded-Host behind a proxy), not request.url — Next.js rewrites that to its own hostname, which
+ * rejected same-site requests made through a LAN IP or a public domain.
+ */
+export function sameOrigin(origin:string,request:Request){
+  let host:string;try{host=new URL(origin).host;}catch{return false;}
+  const target=request.headers.get("x-forwarded-host")?.split(",")[0]?.trim()||request.headers.get("host")||new URL(request.url).host;
+  return host.toLowerCase()===target.toLowerCase();
+}
 export async function proxyToolbox(request:Request,path:string,privateRoute=false){
   try{
     if(request.method!=="GET"){
       const origin=request.headers.get("origin");
-      if(origin&&new URL(origin).origin!==new URL(request.url).origin)return Response.json({error:"ไม่อนุญาตคำขอจากเว็บไซต์อื่น"},{status:403});
+      if(origin&&!sameOrigin(origin,request))return Response.json({error:"ไม่อนุญาตคำขอจากเว็บไซต์อื่น"},{status:403});
       if(request.headers.get("sec-fetch-site")==="cross-site")return Response.json({error:"ไม่อนุญาตคำขอจากเว็บไซต์อื่น"},{status:403});
     }
     // Publishing is the only write path open to guests; bound it before reading up to 25 MB of body.

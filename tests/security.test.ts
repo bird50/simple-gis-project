@@ -42,3 +42,13 @@ test("station bbox requires WGS84 ranges and ordered corners",()=>{
  assert.deepEqual(stationBbox.parse("98,12,101,15"),[98,12,101,15]);
  for(const value of ["181,0,182,1","0,91,1,92","101,12,98,15","98,15,101,12","1,2,3"," ,1,2,3"])assert.equal(stationBbox.safeParse(value).success,false);
 });
+test("same-origin check uses the Host the browser targeted, so LAN IPs and domains work but other sites do not",async()=>{
+ const {sameOrigin}=await import("../lib/toolbox/service");
+ const request=(host:string,forwarded?:string)=>new Request("http://localhost:3000/api/photo-shares",{method:"POST",headers:{host,...forwarded?{"x-forwarded-host":forwarded}:{}}});
+ assert.equal(sameOrigin("http://192.168.1.117:3000",request("192.168.1.117:3000")),true);
+ assert.equal(sameOrigin("http://localhost:3000",request("localhost:3000")),true);
+ assert.equal(sameOrigin("https://gis.example.org",request("127.0.0.1:3000","gis.example.org")),true);
+ assert.equal(sameOrigin("https://evil.example",request("192.168.1.117:3000")),false);
+ assert.equal(sameOrigin("http://192.168.1.117:3001",request("192.168.1.117:3000")),false);
+ assert.equal(sameOrigin("null",request("localhost:3000")),false);
+});
