@@ -23,7 +23,7 @@ bird_dev/
 - `config/toolboxes.tsx` — `toolPlugins` (module-level constant, Toolbox order), each imported from its `/tools/*` entry. Tool IDs keep the old `thaiwater.*` names.
 - `config/layers.ts` — system layers only. Tool layers are registered by plugins with `owner.toolId`; never add a tool layer ID here (the tool would refuse to mount).
 - `components/map/LayerDataSources.tsx` offers system layers to the SDK `DataPanel` (bottom Data Panel) via `useDataSource`; `components/map/useStations.ts` loads stations by map bbox and falls back to sample stations when PostGIS is down. Column headers come from `fieldLabels` in `config/layers.ts`.
-- `components/map/GISMap.tsx` — `GISRoot` creates one registry per user (`key={user.id}`) and wraps the workspace in `ToolboxProvider` (`toolLayers="start"`). The sidebar reads `useLayers()`, shows settings via `useLayerSettings`, and uses `layer.owner` for the orange accent/icons. `<ToolOverlays/>` sits inside `MapLibreToolboxBridge`; `<ToolDialogs/>` once.
+- `components/map/GISMap.tsx` — `GISRoot` creates one registry per user (`key={user.id}`) and wraps the workspace in `ToolboxProvider` (`toolLayers="start"`). The sidebar reads `useLayers()`, shows settings via `useLayerSettings` and a − (Remove from map) button via `useLayerRemove`, and uses `layer.owner` for the orange accent/icons. `<ToolOverlays/>` sits inside `MapLibreToolboxBridge`; `<ToolDialogs/>` once.
 - `lib/toolbox/runtime.ts` keeps the legacy IndexedDB names (`thaiwater-my-photos`, `thaiwater-my-drawing`, `thaiwater-data-files`). Changing them loses users' saved browser data.
 
 ## Gateway to toolbox_service
