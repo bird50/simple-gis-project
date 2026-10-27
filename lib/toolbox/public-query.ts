@@ -1,6 +1,6 @@
 import {z} from "zod";
 import {publicPhotoQuery} from "@/lib/gis/public-photo-query";
-import {publicDataFileQuery,publicDrawingSetQuery,publicPhotoSetQuery} from "@thaiwater/toolbox-sdk";
+import {publicDataFileQuery,publicDataFileSetQuery,publicDrawingSetQuery,publicPhotoSetQuery} from "@thaiwater/toolbox-sdk";
 
 const FILTERS=["username","eventName","tag","startDate","endDate"] as const;
 const drawingLimit=z.coerce.number().int().min(1).max(50).default(50);
@@ -39,11 +39,19 @@ export function publicPhotoSetSearch(query:URLSearchParams){
   for(const key of FILTERS)if(parsed.data[key])upstream.set(key,parsed.data[key]);
   return upstream;
 }
+const SET_FILTERS=["name","username","tag","startDate","endDate"] as const;
+function setSearch(parsed:{offset:number;limit:number}&Record<(typeof SET_FILTERS)[number],string>){
+  const upstream=new URLSearchParams({offset:String(parsed.offset),limit:String(parsed.limit)});
+  for(const key of SET_FILTERS)if(parsed[key])upstream.set(key,parsed[key]);
+  return upstream;
+}
 /** Public drawing sets: name/username/tag and published-date filters (AND), offset and limit (1–50), nothing else. */
 export function publicDrawingSetSearch(query:URLSearchParams){
   const parsed=publicDrawingSetQuery.safeParse(Object.fromEntries(query));
-  if(!parsed.success)return null;
-  const upstream=new URLSearchParams({offset:String(parsed.data.offset),limit:String(parsed.data.limit)});
-  for(const key of ["name","username","tag","startDate","endDate"] as const)if(parsed.data[key])upstream.set(key,parsed.data[key]);
-  return upstream;
+  return parsed.success?setSearch(parsed.data):null;
+}
+/** Public data file sets: the same filters, offset and limit as drawing sets, nothing else. */
+export function publicDataFileSetSearch(query:URLSearchParams){
+  const parsed=publicDataFileSetQuery.safeParse(Object.fromEntries(query));
+  return parsed.success?setSearch(parsed.data):null;
 }

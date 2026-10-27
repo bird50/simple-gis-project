@@ -42,7 +42,7 @@ Layer ระบบ: เพิ่ม `LayerDefinition` ใน `config/layers.ts` 
 
 ตารางข้อมูล: `components/map/LayerDataSources.tsx` ส่ง layer ระบบเข้า Data Panel ของ SDK ด้วย `useDataSource` — layer ที่มี `render.dataKey` ใช้ข้อมูลชุดเดียวกับแผนที่ ส่วนไฟล์ GeoJSON ขนาดเล็ก (`type:"GEOJSON"`, URL ขึ้นต้นด้วย `/`) โหลดครั้งเดียวเมื่อเปิด layer ครั้งแรก (สูงสุด 5,000 แถว) WMS/tiles ไม่มีแถวข้อมูล คอลัมน์เรียงตาม `popupFields` และหัวคอลัมน์ภาษาไทยอยู่ใน `fieldLabels` เครื่องมือของ Toolbox ส่งข้อมูลของตัวเองได้ด้วย `useDataSource` ใน Controller (Data Files ทำอยู่แล้ว)
 
-Layer ของ Toolbox มาจาก plugin (`my-data-files`, `public-data-files` และ layer ที่ plugin Photo และ Draw เพิ่ม-ลบเองตามชุดที่กด Add to map: `my-photos/<eventId>` "My Photos/ชื่อเหตุการณ์", `public-photos/<shareId>` "Public Photos/ชื่อชุด", `my-drawing/<setId>` "My Drawing/ชื่อชุด" และ `public-drawing/<shareId>` "Public Drawing/ชื่อชุด") และมี `owner.toolId`; ปรับชื่อ/สี/สิทธิ์ได้ด้วย option ของ factory เช่น `drawTool({mine:{title:"..."}})` และต้องไม่ซ้ำกับ ID ใน `config/layers.ts` มิฉะนั้นเครื่องมือนั้นจะไม่ถูก mount และ Toolbox แสดงข้อความแจ้ง `GET /api/gis/layers` และหน้า `/admin/layers` แสดงเฉพาะ layer ระบบ
+Layer ของ Toolbox มาจาก plugin (layer ที่ plugin Data Files, Photo และ Draw เพิ่ม-ลบเองตามชุดที่กด Add to map: `my-data-files/<setId>` "My Data Files/ชื่อชุด", `public-data-files/<shareId>` "Public Data Files/ชื่อชุด", `my-photos/<eventId>` "My Photos/ชื่อเหตุการณ์", `public-photos/<shareId>` "Public Photos/ชื่อชุด", `my-drawing/<setId>` "My Drawing/ชื่อชุด" และ `public-drawing/<shareId>` "Public Drawing/ชื่อชุด") และมี `owner.toolId`; ปรับชื่อ/สี/สิทธิ์ได้ด้วย option ของ factory เช่น `drawTool({mine:{title:"..."}})` และต้องไม่ซ้ำกับ ID ใน `config/layers.ts` มิฉะนั้นเครื่องมือนั้นจะไม่ถูก mount และ Toolbox แสดงข้อความแจ้ง `GET /api/gis/layers` และหน้า `/admin/layers` แสดงเฉพาะ layer ระบบ
 
 WMS/WFS/vector/raster/ArcGIS ยังไม่มี renderer ใน RegistryLayers นี้ ต้องเพิ่ม adapter ตามชนิดข้อมูลก่อนเปิดใช้งาน ข้อมูลขนาดใหญ่ใช้ PostGIS/MVT ตามแนวทาง README
 
@@ -52,7 +52,7 @@ Access level และ capability ใช้ควบคุม UI เท่าน
 
 ### Local data files
 
-`render.kind: "mixed"` renders polygon fills/outlines, lines, and points from a single GeoJSON source; its interactive layer IDs have `-fill`, `-line`, and `-point` suffixes. Simple Data Files draws `my-data-files` through the map adapter's GeoJSON surface with the same IDs (`registry-my-data-files-*`), so the web's Identify click keeps working and the layer survives basemap changes. Data persists only in browser IndexedDB; it adds no server route or external data request.
+`render.kind: "mixed"` renders polygon fills/outlines, lines, and points from a single GeoJSON source; its interactive layer IDs have `-fill`, `-line`, and `-point` suffixes. Simple Data Files draws each set on the map (`my-data-files/<setId>`, `public-data-files/<shareId>`) through the map adapter's GeoJSON surface with registry IDs (`registry-<layer id>-*`), so the web's Identify click keeps working and the layers survive basemap changes. My Data Files sets persist only in browser IndexedDB until Save to Public; Public sets are read through `GET /api/public/data-file-shares` and `GET /api/data-file-shares/[shareId]`.
 
 ## SDK integration
 

@@ -3,7 +3,7 @@ import {test} from "node:test";
 import {authKey} from "../lib/auth/secret";
 import {removesActiveAdmin} from "../lib/auth/admin-guard";
 import {clientAddress,createRateLimiter} from "../lib/security/rate-limit";
-import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch,publicPhotoSetSearch,publicDrawingSetSearch} from "../lib/toolbox/public-query";
+import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch,publicPhotoSetSearch,publicDrawingSetSearch,publicDataFileSetSearch} from "../lib/toolbox/public-query";
 import {stationBbox} from "../lib/gis/bbox";
 
 test("production refuses a missing, short or example AUTH_SECRET; development keeps a local fallback",()=>{
@@ -78,4 +78,7 @@ test("public drawing set search forwards only validated filters",()=>{
  assert.equal(String(publicDrawingSetSearch(new URLSearchParams("name=flood&tag=x&evil=1&offset=20"))),"offset=20&limit=20&name=flood&tag=x");
  assert.equal(publicDrawingSetSearch(new URLSearchParams("limit=51")),null);
  assert.equal(publicDrawingSetSearch(new URLSearchParams("startDate=2026-10-20&endDate=2026-10-19")),null);
+ assert.equal(String(publicDataFileSetSearch(new URLSearchParams("name=gauge&username=a&startDate=2026-10-01&evil=1"))),"offset=0&limit=20&name=gauge&username=a&startDate=2026-10-01");
+ assert.equal(publicDataFileSetSearch(new URLSearchParams("limit=51")),null);
+ assert.equal(publicDataFileSetSearch(new URLSearchParams("startDate=2026-02-30")),null);
 });

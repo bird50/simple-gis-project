@@ -55,12 +55,13 @@
 
 ## E. Simple Data Files
 
-- [ ] Toolbox → Simple Data Files → เฟือง → นำเข้า `.kml` พร้อมคำอธิบาย → Layer My Data Files เปิด แผนที่ซูมไปยังข้อมูล จำนวนไฟล์เพิ่ม
-- [ ] นำเข้า `.geojson` และ `.csv` → แสดงจุด เส้น และพื้นที่ร่วมกันใน Layer เดียว
-- [ ] คลิก feature ของไฟล์ → popup Identify แสดง `data_file`, `file_description` และ properties
+- [ ] Toolbox → Simple Data Files → เฟือง My Data Files → เลือก `.kml` ชื่อชุดเติมจากชื่อไฟล์; ลบชื่อแล้ว Save ขึ้นข้อความให้ระบุชื่อ; ใส่ชื่อ+คำอธิบาย+แท็กแล้ว Save ชุดข้อมูล → มี layer "My Data Files/<ชื่อ>" แผนที่ซูมไปยังข้อมูล
+- [ ] นำเข้า `.geojson` และ `.csv` เป็นชุดแยก → แต่ละชุดเป็น layer ของตัวเอง แสดงจุด เส้น และพื้นที่
+- [ ] คลิก feature ของชุด → popup Identify แสดง `data_file`, `file_description` และ properties; ตารางข้อมูลมีแท็บของชุดพร้อมหัวคอลัมน์ภาษาไทย
 - [ ] นำเข้าไฟล์ผิดรูปแบบ → ข้อความ error ชัดเจน ไม่มีข้อมูลบางส่วนถูกเพิ่ม
-- [ ] ลบไฟล์จากรายการ → หายจากแผนที่และจำนวนลดลง
-- [ ] รีเฟรช → ไฟล์ยังอยู่ (IndexedDB `thaiwater-data-files`)
+- [ ] จัดการ My Data Files: Add to map / Remove from map / แก้ชื่อแล้ว layer เปลี่ยนชื่อ / แทนที่ข้อมูลด้วยไฟล์ใหม่ / ลบชุดแล้ว layer หาย; ปุ่ม − ในแผงชั้นข้อมูล
+- [ ] Save to Public ของชุด → ค้นหาใน Public Data Files (ชุดล่าสุดก่อน กรองชื่อ/ผู้แชร์/แท็ก/วันที่) → Add to map เป็น layer "Public Data Files/<ชื่อ>", Remove from map แล้วหาย, รีเฟรชแล้วชุดที่เพิ่มยังอยู่
+- [ ] รีเฟรช → ชุดยังอยู่ (IndexedDB `thaiwater-data-files`); ไฟล์ที่บันทึกก่อน SDK 1.11 เป็นชุดที่ยังไม่อยู่บนแผนที่
 
 ## F. Navigation tool และส่วนของเว็บ
 
@@ -93,4 +94,5 @@
 | 2026-10-27 | SDK 1.7.0 (รูปภาพในตารางข้อมูล) | Claude (ตรวจบางข้อ) | ข้อ Data Panel, Public Photos | ผ่านบน dev พอร์ต 3000 กับชุด Public "ทดสอบ1" (อ่านอย่างเดียว): Add to map แล้วตารางข้อมูลมีแท็บ "Public Photos/ทดสอบ1" 3 แถว (ชื่อรูป วันที่ถ่าย ชุดเหตุการณ์ แชร์โดย แท็ก), กดชื่อรูปแล้วแผนที่ซูมไปที่รูปและเปิด popup ของรูป ชุด My Photos ตรวจด้วย test ของ SDK |
 | 2026-10-27 | SDK 1.8.0 (ปุ่ม − ในแผงชั้นข้อมูล) | Claude (ตรวจบางข้อ) | ข้อ Layer Panel, Photo | ผ่านบน dev พอร์ต 3000: แถว "My Photos/ทดสอบ Claude" และ "Public Photos/ทดสอบ1" มีปุ่ม − ส่วน layer อื่นไม่มี, กด − แล้ว layer และ marker หาย ชุด My Photos ยังอยู่ (onMap=false) และรายการชุด Public ที่จำไว้ว่าง, ลบชุดทดสอบแล้ว |
 | 2026-10-27 | SDK 1.10.0 + service 1.6.0 (Draw แบบเดียวกับ Photo) | Claude (ตรวจบางข้อ) | ข้อ Draw, Public Drawing | ผ่านบน dev พอร์ต 3000 กับ service จริง: รูปวาดเดิมในเบราว์เซอร์ย้ายเป็นชุด "My Drawing เดิม" บนแผนที่, วาดจุดบนกระดาษร่างแล้ว Save ชุดรูปวาด (ชื่อ+แท็ก) ได้ layer "My Drawing/<ชื่อ>" และกระดาษว่าง, Save to Public ได้แท็ก share2026-10-27 + แท็กผู้ใช้, ค้นหาใน Public Drawing พบชุด แล้ว Add to map ได้ layer "Public Drawing/<ชื่อ>", ปุ่ม − อยู่ครบทุกแถวชุด, Remove from map และลบชุดทดสอบ/ชุด Public ทดสอบแล้ว ยังไม่ได้ตรวจในเบราว์เซอร์: แก้ไขรูปวาดของชุดใน Toolbar และตารางข้อมูล (ตรวจด้วย test ของ SDK) |
+| 2026-10-27 | SDK 1.11.0 + service 1.7.0 (Data Files แบบเดียวกับ Photo) | Claude (ตรวจบางข้อ) | ข้อ Simple Data Files | ผ่านบน dev พอร์ต 3000 กับ service จริง: ไฟล์เดิมในเบราว์เซอร์ (phase3.geojson) เป็นชุดที่ยังไม่อยู่บนแผนที่, เลือก CSV แล้วชื่อชุดเติมจากชื่อไฟล์ Save ชุดข้อมูล (แท็ก claude-test) ได้ layer "My Data Files/ทดสอบ Claude" และซูมไปที่ข้อมูล, ตารางข้อมูลมีแท็บของชุด 2 แถว หัวคอลัมน์ภาษาไทย, Save to Public ได้แท็ก share2026-10-27 + claude-test, ค้นหาใน Public Data Files พบชุด แล้ว Add to map ได้ layer "Public Data Files/ทดสอบ Claude", ปุ่ม − ในแผงชั้นข้อมูลเอาทั้งสอง layer ออก, ลบชุดทดสอบและชุด Public ทดสอบแล้ว ยังไม่ได้ตรวจในเบราว์เซอร์: แก้ชื่อ/แทนที่ไฟล์ และคลิก Identify (ตรวจด้วย test ของ SDK เฉพาะการแก้ชื่อ) |
 | | | | | |
