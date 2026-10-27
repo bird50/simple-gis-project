@@ -14,7 +14,7 @@ bird_dev/
 ```
 
 - The web installs the SDK as `file:../toolbox_sdk` with `install-links=true` (`.npmrc`): a copy, not a symlink. After changing the SDK, rebuild it and reinstall here. npm skips reinstalling when the version is unchanged, so remove the copy first:
-  `rm -rf node_modules/@thaiwater/toolbox-sdk && npm install ../toolbox_sdk --install-links`, then restart `npm run dev`.
+  `rm -rf node_modules/@thaiwater/toolbox-sdk && npm install ../toolbox_sdk --install-links`, then restart `npm run dev`. If the dev server was running during the reinstall and SDK UI shows unstyled (Tailwind `@source` read the missing copy), stop dev, delete `.next/dev` and start it again.
 - Import the SDK only through its public entries: `@thaiwater/toolbox-sdk`, `/react`, `/maplibre`, `/storage`, `/core/{drawing,data-files,photo-gps}`, `/tools/{photo,draw,data-files,navigation}`. Deep paths (`/ui/...`, `/adapters/...`) are not exported.
 - Never edit tool code here. Tool UI, text and storage live in the SDK; change them there.
 
