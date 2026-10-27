@@ -21,6 +21,10 @@ export async function toolboxFetch(path:string,init:RequestInit={}) {
   const key=serviceKey(init.method);
   return fetch(new URL(path,process.env.TOOLBOX_SERVICE_URL??"http://127.0.0.1:4010"),{...init,cache:"no-store",signal:AbortSignal.timeout(30_000),headers:{...Object.fromEntries(new Headers(init.headers)),authorization:`Bearer ${key}`}});
 }
+/** Display name stored with every share, so toolbox_service records which app published it. */
+export function appNameHeader(env:Record<string,string|undefined>=process.env){
+  return {"x-toolbox-app-name":encodeURIComponent((env.TOOLBOX_APP_NAME||"ThaiWater GIS").trim().slice(0,100))};
+}
 async function ownerHeaders(){
   if(AUTH_ENABLED){
     const auth=await requireUser();if("error" in auth)return auth.error;
@@ -32,7 +36,8 @@ async function ownerHeaders(){
   const key=new TextEncoder().encode(secret),jar=await cookies();let owner:string|undefined;
   try{const token=jar.get("toolbox_guest")?.value;if(token){const {payload}=await jwtVerify(token,key,{algorithms:["HS256"],audience:"toolbox-guest"});if(typeof payload.sub==="string"&&/^guest:[0-9a-f-]{36}$/.test(payload.sub))owner=payload.sub;}}catch{}
   if(!owner){owner=`guest:${crypto.randomUUID()}`;const token=await new SignJWT({}).setSubject(owner).setAudience("toolbox-guest").setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime("30d").sign(key);jar.set("toolbox_guest",token,{httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/",maxAge:30*86400});}
-  return {"x-toolbox-owner":owner,"x-toolbox-username":encodeURIComponent("ผู้เยี่ยมชม")};
+  // Guests have no app user name; the service stores them as "anonymous".
+  return {"x-toolbox-owner":owner};
 }
 /**
  * CSRF guard: the browser's Origin must name the host it sent the request to. Compare with the Host header
@@ -54,7 +59,7 @@ export async function proxyToolbox(request:Request,path:string,privateRoute=fals
     // Publishing is the only write path open to guests; bound it before reading up to 25 MB of body.
     if(privateRoute&&request.method!=="GET"){const limited=publicationByAddress.take(clientAddress(request));if(!limited.ok)return tooManyRequests(limited.retryAfter);}
     const headers:Record<string,string>={};
-    if(privateRoute){const owner=await ownerHeaders();if(owner instanceof Response)return owner;Object.assign(headers,owner);}
+    if(privateRoute){const owner=await ownerHeaders();if(owner instanceof Response)return owner;Object.assign(headers,owner,appNameHeader());}
     let body:Uint8Array|undefined;
     if(request.method!=="GET"){
       const max=path==="/drawing-shares"?1024*1024:path==="/data-file-shares"?MAX_DATA_SHARE_BYTES:25*1024*1024;

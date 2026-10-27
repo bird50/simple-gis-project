@@ -64,3 +64,8 @@ test("gateway reads with the read-only service key and publishes with the read,w
  assert.throws(()=>serviceKey("POST",{TOOLBOX_SERVICE_READ_KEY:read}),"a read key never publishes");
  assert.throws(()=>serviceKey("GET",{TOOLBOX_SERVICE_READ_KEY:"short"}));
 });
+test("gateway names the app on every publish",async()=>{
+ const {appNameHeader}=await import("../lib/toolbox/service");
+ assert.deepEqual(appNameHeader({}),{"x-toolbox-app-name":"ThaiWater%20GIS"});
+ assert.equal(decodeURIComponent(appNameHeader({TOOLBOX_APP_NAME:" ระบบน้ำ "})["x-toolbox-app-name"]),"ระบบน้ำ");
+});
