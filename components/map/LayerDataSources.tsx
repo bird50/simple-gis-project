@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {useDataSource,useLayers} from "@thaiwater/toolbox-sdk/react";
+import {useDataSource,useLayers} from "@thaiwater/toolbox-sdk/react/core";
 import type {LayerDefinition} from "@thaiwater/toolbox-sdk";
 import type {Feature,FeatureCollection} from "geojson";
 

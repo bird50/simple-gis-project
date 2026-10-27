@@ -1,5 +1,5 @@
 "use client";
-import {definePlugins} from "@thaiwater/toolbox-sdk/react";
+import {definePlugins} from "@thaiwater/toolbox-sdk/react/core";
 import {dataFilesTool} from "@thaiwater/toolbox-sdk/tools/data-files";
 import {photoTool} from "@thaiwater/toolbox-sdk/tools/photo";
 import {drawTool} from "@thaiwater/toolbox-sdk/tools/draw";

@@ -1,6 +1,6 @@
 "use client";
 import {PanelRightClose,Wrench} from "lucide-react";
-import {PanelSplitter,ToolboxPanel} from "@thaiwater/toolbox-sdk/react";
+import {PanelSplitter,ToolboxPanel} from "@thaiwater/toolbox-sdk/react/core";
 import {Button} from "@/components/ui/button";
 export function MapToolbox(props:{hidden:boolean;onClose:()=>void;width:number;maxWidth:number;onWidthChange:(width:number)=>void}) {
   return <aside hidden={props.hidden} id="map-toolbox" aria-label="Toolbox" style={{width:`min(${props.width}px, calc(100vw - 48px))`}} className={`${props.hidden?"hidden":"flex"} absolute inset-y-0 right-0 z-30 w-[min(288px,calc(100vw-48px))] shrink-0 flex-col border-l border-slate-200 bg-white shadow-xl xl:relative xl:w-72 xl:shadow-none`}>

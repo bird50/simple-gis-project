@@ -181,7 +181,7 @@ plugin `dataFilesTool` วาดจุด เส้น และพื้นท�
 
 `lib/toolbox/runtime.ts` ระบุ appId, storage และ gateway client ของเว็บนี้ ใช้ชื่อ IndexedDB เดิมอย่างชัดเจนเพื่ออ่านข้อมูลเดิมต่อได้ ไม่อัปโหลดหรือย้าย My Photos/My Drawing โดยอัตโนมัติ แอปใหม่เรียก `createBrowserStorage(appId)` จะได้ namespace แยกแอปและ schema v1; userId แยกเจ้าของภายในฐานข้อมูล
 
-เว็บใช้ SDK 1.2 ผ่าน entry ที่ประกาศไว้เท่านั้น (`@thaiwater/toolbox-sdk`, `/react`, `/maplibre`, `/storage`, `/core/*`, `/tools/*`) ไฟล์ compatibility re-export เดิมใน `components/map/` ถูกลบแล้ว ส่วน `lib/gis/{data-files,drawing,photo-gps,photo-share,public-photo-query}.ts` ยังเป็น re-export สำหรับโค้ดและ test ฝั่ง server; API routes และการตรวจสิทธิ์ยังอยู่ในเว็บ/Toolbox Service ไม่ย้าย secrets เข้า SDK ข้อความใน UI ของเครื่องมือมาจาก `thMessages` ของ SDK และสีเปลี่ยนได้ผ่าน CSS variables `--sdk-*` (ดู `../toolbox_sdk/README.md`)
+เว็บใช้ SDK 1.2 ผ่าน entry ที่ประกาศไว้เท่านั้น (`@thaiwater/toolbox-sdk`, `/react/core`, `/maplibre`, `/storage`, `/core/*`, `/tools/*`) ไฟล์ compatibility re-export เดิมใน `components/map/` ถูกลบแล้ว ส่วน `lib/gis/{data-files,drawing,photo-gps,photo-share,public-photo-query}.ts` ยังเป็น re-export สำหรับโค้ดและ test ฝั่ง server; API routes และการตรวจสิทธิ์ยังอยู่ในเว็บ/Toolbox Service ไม่ย้าย secrets เข้า SDK ข้อความใน UI ของเครื่องมือมาจาก `thMessages` ของ SDK และสีเปลี่ยนได้ผ่าน CSS variables `--sdk-*` (ดู `../toolbox_sdk/README.md`)
 
 การแก้ SDK: รัน lint/build/test ใน `../toolbox_sdk`, อัปเดต package version เมื่อเปลี่ยน release แล้ว `npm install ../toolbox_sdk --install-links` ในเว็บ เพื่ออัปเดตสำเนาแพ็กเกจที่ติดตั้ง ไม่แก้ไฟล์ใน node_modules
 

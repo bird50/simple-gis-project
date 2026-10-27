@@ -23,7 +23,7 @@
 ## เพิ่มเครื่องมือ
 
 ```tsx
-import {TOOL_API_VERSION,useLayers,useMapAdapter,useToolState,type ToolPlugin} from "@thaiwater/toolbox-sdk/react";
+import {TOOL_API_VERSION,useLayers,useMapAdapter,useToolState,type ToolPlugin} from "@thaiwater/toolbox-sdk/react/core";
 export function myTool():ToolPlugin {
   return {id:"organization.my-tool",title:"เครื่องมือของฉัน",version:"1.0.0",apiVersion:TOOL_API_VERSION,
     accessLevel:"MEMBER",requires:["map.navigate"],

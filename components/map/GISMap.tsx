@@ -1,5 +1,5 @@
 "use client";
-import {DataPanel,PanelSplitter,ToolboxProvider,ToolOverlays,ToolDialogs,useLayerRemove,useLayerSettings,useLayers} from "@thaiwater/toolbox-sdk/react";
+import {DataPanel,PanelSplitter,ToolboxProvider,ToolOverlays,ToolDialogs,useLayerRemove,useLayerSettings,useLayers} from "@thaiwater/toolbox-sdk/react/core";
 import {useDrawingToolbar} from "@thaiwater/toolbox-sdk/tools/draw";
 import {MapLibreToolboxBridge,RegistryLayers,interactiveRegistryIds} from "@thaiwater/toolbox-sdk/maplibre";
 import {createLayerRegistry,type DataSource,type LayerDefinition} from "@thaiwater/toolbox-sdk";
