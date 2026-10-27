@@ -3,7 +3,7 @@ import {test} from "node:test";
 import {authKey} from "../lib/auth/secret";
 import {removesActiveAdmin} from "../lib/auth/admin-guard";
 import {clientAddress,createRateLimiter} from "../lib/security/rate-limit";
-import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch} from "../lib/toolbox/public-query";
+import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch,publicPhotoSetSearch} from "../lib/toolbox/public-query";
 import {stationBbox} from "../lib/gis/bbox";
 
 test("production refuses a missing, short or example AUTH_SECRET; development keeps a local fallback",()=>{
@@ -68,4 +68,9 @@ test("gateway names the app on every publish",async()=>{
  const {appNameHeader}=await import("../lib/toolbox/service");
  assert.deepEqual(appNameHeader({}),{"x-toolbox-app-name":"ThaiWater%20GIS"});
  assert.equal(decodeURIComponent(appNameHeader({TOOLBOX_APP_NAME:" ระบบน้ำ "})["x-toolbox-app-name"]),"ระบบน้ำ");
+});
+test("public photo set search forwards only validated filters",()=>{
+ assert.equal(String(publicPhotoSetSearch(new URLSearchParams("eventName=flood&tag=x&evil=1&offset=20"))),"offset=20&limit=20&eventName=flood&tag=x");
+ assert.equal(publicPhotoSetSearch(new URLSearchParams("limit=51")),null);
+ assert.equal(publicPhotoSetSearch(new URLSearchParams("startDate=2026-10-20&endDate=2026-10-19")),null);
 });

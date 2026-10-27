@@ -1,6 +1,6 @@
 import {z} from "zod";
 import {publicPhotoQuery} from "@/lib/gis/public-photo-query";
-import {publicDataFileQuery} from "@thaiwater/toolbox-sdk";
+import {publicDataFileQuery,publicPhotoSetQuery} from "@thaiwater/toolbox-sdk";
 
 const FILTERS=["username","eventName","tag","startDate","endDate"] as const;
 const drawingLimit=z.coerce.number().int().min(1).max(50).default(50);
@@ -29,5 +29,13 @@ export function publicDataFileSearch(query:URLSearchParams){
   const upstream=new URLSearchParams({bbox:parsed.data.bbox.join(","),limit:String(parsed.data.limit)});
   if(parsed.data.search)upstream.set("search",parsed.data.search);
   if(parsed.data.tag)upstream.set("tag",parsed.data.tag);
+  return upstream;
+}
+/** Public photo sets: the photo filters (AND), offset and limit (1–50), nothing else. */
+export function publicPhotoSetSearch(query:URLSearchParams){
+  const parsed=publicPhotoSetQuery.safeParse(Object.fromEntries(query));
+  if(!parsed.success)return null;
+  const upstream=new URLSearchParams({offset:String(parsed.data.offset),limit:String(parsed.data.limit)});
+  for(const key of FILTERS)if(parsed.data[key])upstream.set(key,parsed.data[key]);
   return upstream;
 }

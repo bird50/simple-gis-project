@@ -32,7 +32,7 @@ function GISRoot({user}:{user:SessionUser}) {
   const [registry]=useState(()=>createLayerRegistry(layerRegistry,user.role));
   return <ToolboxProvider runtime={toolboxRuntime} registry={registry} plugins={toolPlugins} user={{id:user.id,accessLevel:user.role}} toolLayers="start"><GISWorkspace/></ToolboxProvider>;
 }
-/** Settings button for toolbox layers that declare a settings dialog (My Data Files, Public Photos). */
+/** Settings button for toolbox layers that declare a settings dialog (My Data Files, photo sets). */
 function LayerSettingsButton({layer}:{layer:LayerDefinition}) {
   const settings=useLayerSettings(layer.id);
   return settings?<Button variant="ghost" size="icon" className="size-7 shrink-0 text-sky-600" title={`ตั้งค่า ${layer.title}`} aria-label={`ตั้งค่าชั้นข้อมูล ${layer.title}`} aria-haspopup="dialog" aria-expanded={settings.open} onClick={event=>settings.show(event.currentTarget)}><Settings/></Button>:null;

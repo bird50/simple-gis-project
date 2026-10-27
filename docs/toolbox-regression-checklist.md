@@ -26,7 +26,7 @@
 ## B. Layer Panel ↔ Toolbox sync
 
 - [ ] Layer ของ Toolbox (My Photos, Public Photos, My Drawing, Public Drawing, My Data Files) มีแถบสีส้ม Layer ปกติเป็นสีฟ้า
-- [ ] เปิด–ปิด My Photos จาก sidebar → สวิตช์ใน Toolbox เปลี่ยนตาม และกลับกัน (ทำซ้ำกับ Public Photos, My Drawing, Public Drawing, My Data Files)
+- [ ] เปิด–ปิด My Photos จาก sidebar → สวิตช์ใน Toolbox เปลี่ยนตาม และกลับกัน (ทำซ้ำกับ My Drawing, Public Drawing, My Data Files; Photo ไม่มีสวิตช์ ใช้ปุ่มตาของแต่ละชุดใน sidebar)
 - [ ] ปรับความทึบใน sidebar → marker/รูปวาด/ข้อมูลไฟล์บนแผนที่จางลงตามค่า
 - [ ] ลำดับการวาด GeoJSON (ขอบเขตลุ่มน้ำ, สถานี, My Data Files) เป็นไปตามลำดับใน registry → บันทึกลำดับที่เห็นไว้เป็นค่าอ้างอิง เพราะ SDK 0.1.2 เริ่มใช้ `moveLayer`
 - [ ] Layer ระดับ ADMIN (พื้นที่เสี่ยงน้ำท่วม) ไม่ปรากฏในโหมดผู้เยี่ยมชม
@@ -37,9 +37,9 @@
 - [ ] เพิ่ม JPEG ที่ไม่มี GPS → แสดงข้อความแจ้งเตือน ไม่ถูกเพิ่ม
 - [ ] คลิก marker → popup แสดงชื่อ, รูป และวันหมดอายุบนเครื่อง
 - [ ] รีเฟรชหน้า → My Photos ยังอยู่ (IndexedDB `thaiwater-my-photos`)
-- [ ] เลือกรูปแล้ว Save & Share Public พร้อมชื่อเหตุการณ์และแท็ก → สำเร็จ; เปิด Layer Public Photos แล้วเห็นรูปที่แชร์ พร้อมลิงก์ "ดูชุดภาพ Public" ที่เปิด `/share/<id>` ได้
-- [ ] เฟือง Public Photos → กรองด้วยชื่อผู้ใช้/เหตุการณ์/แท็ก/ช่วงวัน → ข้อความ "ใช้เงื่อนไขค้นหา N รายการ" และผลกรองตรง (เงื่อนไขเป็น OR)
-- [ ] เลื่อนหรือซูมแผนที่ → Public Photos โหลดใหม่ตาม viewport แสดง "กำลังโหลด…" แล้วแสดงจำนวน หรือ "ไม่พบภาพ Public ในพื้นที่นี้"
+- [ ] เลือกรูปแล้ว Save & Share Public พร้อมชื่อเหตุการณ์และแท็ก → สำเร็จ; ค้นหาชุดใน Public Photos แล้ว Add to map เห็นรูปที่แชร์ พร้อมลิงก์ "ดูชุดภาพ Public" ที่เปิด `/share/<id>` ได้
+- [ ] เฟือง Public Photos → แสดงชุดรูปภาพล่าสุดก่อน (ยังไม่มีอะไรขึ้นแผนที่) → กรองด้วยชื่อผู้ใช้/เหตุการณ์/แท็ก/ช่วงวัน (AND) → Add to map แต่ละชุดได้ layer "Public Photos/ชื่อชุด" และซูมไปที่ชุด, ปุ่มตาซ่อนเฉพาะชุดนั้น, เอาออกจากหน้าค้นหาแล้ว layer หาย, รีเฟรชหน้าแล้วชุดยังอยู่
+- [ ] Toolbox → Photo ไม่มีสวิตช์ Public Photos มีเฉพาะเฟืองและจำนวน "ชุดบนแผนที่ N"
 - [ ] หยุด Toolbox Service แล้วเลื่อนแผนที่ → ข้อความ error ใน Toolbox แต่ My Photos ยังใช้ได้
 
 ## D. Draw
@@ -86,4 +86,5 @@
 | 2026-10-27 | SDK 1.4.0 + service 1.3.0 (ชื่อบังคับ, เพิ่ม-ลบรูป, Save to Public) | Claude (ตรวจบางข้อ) | ข้อ My Photos | ผ่านบน production build พอร์ต 3100: Save โดยไม่ใส่ชื่อขึ้น "กรุณาระบุชื่อเหตุการณ์", Save ชุดแล้วเพิ่มรูปเป็น 2 รูป marker ขึ้นครบ, ไม่มีปุ่มซ่อน, Save to Public ได้ลิงก์ (/share ตอบ 200) และ service เก็บ appName "ThaiWater GIS", username "anonymous" แล้วลบรายการทดสอบ ยังไม่ได้ตรวจ: โหมดเปิดระบบบัญชี (ชื่อผู้ใช้จริง) |
 | 2026-10-27 | SDK 1.4.0 + service 1.3.0 (ข้อความประกอบรูป) | Claude (ตรวจบางข้อ) | ข้อ My Photos | ผ่านบน production build พอร์ต 3100: ใส่ข้อความตอน Add to My Photos, popup บนแผนที่แสดงข้อความ, Save to Public แล้วหน้า /share และ GET /api/public/photos มีข้อความ แล้วลบรายการทดสอบ ยังไม่ได้ตรวจ: แก้ข้อความในตัวแก้ชุดผ่านเบราว์เซอร์จริง (ตรวจด้วย test ของ SDK) |
 | 2026-10-27 | SDK 1.5.0 (layer แยกต่อชุดเหตุการณ์) | Claude (ตรวจบางข้อ) | ข้อ My Photos | ผ่านบน production build พอร์ต 3100: ไม่มี layer My Photos รวม, ชุดเดิมขึ้นเป็น "My Photos/<ชื่อชุด>", สร้าง 2 ชุดแล้ว Add to map ได้ layer ใหม่ด้านบนสุด (ไอคอนกล้อง) และ Toolbox แสดง "ชุดบนแผนที่ 3 · รูป 5", ปุ่มตาของชุด A ซ่อนเฉพาะ marker ของชุด A, เฟืองของ layer เปิดจัดการ My Photos, ลบชุดแล้ว layer หาย ลบชุดทดสอบทั้งหมดแล้ว |
+| 2026-10-27 | SDK 1.6.0 + service 1.4.0 (ค้นหาชุดรูปภาพ Public) | Claude (ตรวจบางข้อ) | ข้อ Public Photos | ผ่านบน production build พอร์ต 3100 กับ service จริง: Toolbox ไม่มีสวิตช์ Public Photos, เฟืองเปิดค้นหาแล้วแสดงชุดล่าสุด (test01) ก่อนโดยไม่มีอะไรขึ้นแผนที่, Add to map ได้ layer "Public Photos/test01" ในกลุ่มภาพถ่ายสาธารณะ (หลัง Data Files ก่อน Draw) พร้อม marker 2 จุดและซูมไปที่ชุด, รีเฟรชแล้วชุดยังอยู่, ปุ่มตาซ่อน marker, เอาออกแล้ว layer หายและ localStorage ว่าง ยังไม่ได้ตรวจ: กรองด้วยเงื่อนไขในเบราว์เซอร์ (ตรวจด้วย test ของ service) |
 | | | | | |

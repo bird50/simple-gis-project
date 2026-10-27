@@ -29,7 +29,7 @@ bird_dev/
 ## Gateway to toolbox_service
 
 - `lib/toolbox/service.ts` `proxyToolbox` is the only path to the service: same-origin check (`sameOrigin` compares `Origin` with the Host / X-Forwarded-Host header, not `request.url`), publication rate limit, body size cap, owner headers, bearer key.
-- Routes: `app/api/photo-shares`, `app/api/drawing-shares`, `app/api/data-file-shares`, `app/api/public/{photos,drawings,data-files}`, `app/api/photo-shares/[shareId]/photos/[photoId]`, page `app/share/[shareId]`. Public GETs forward only parameters validated by `lib/toolbox/public-query.ts`.
+- Routes: `app/api/photo-shares`, `app/api/drawing-shares`, `app/api/data-file-shares`, `app/api/public/{photos,photo-shares,drawings,data-files}`, `app/api/photo-shares/[shareId]`, `app/api/photo-shares/[shareId]/photos/[photoId]`, page `app/share/[shareId]`. Public GETs forward only parameters validated by `lib/toolbox/public-query.ts`.
 - Keys stay server-side (never `NEXT_PUBLIC_*`). `serviceKey()` picks `TOOLBOX_SERVICE_READ_KEY` (scope `read`) for GET and `TOOLBOX_SERVICE_KEY` (scopes `read,write`) for publishing; without a read key, reads use the write key. Both are issued by `npm run key:create` in toolbox_service (or the write key equals the service's legacy `.env` key). `TOOLBOX_SERVICE_KEY` also signs guest publisher cookies, so rotating it re-issues guest identities. Identity headers come from the gateway, never from the client.
 
 ## Auth mode and security
