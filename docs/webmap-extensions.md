@@ -42,7 +42,7 @@ Layer ระบบ: เพิ่ม `LayerDefinition` ใน `config/layers.ts` 
 
 ตารางข้อมูล: `components/map/LayerDataSources.tsx` ส่ง layer ระบบเข้า Data Panel ของ SDK ด้วย `useDataSource` — layer ที่มี `render.dataKey` ใช้ข้อมูลชุดเดียวกับแผนที่ ส่วนไฟล์ GeoJSON ขนาดเล็ก (`type:"GEOJSON"`, URL ขึ้นต้นด้วย `/`) โหลดครั้งเดียวเมื่อเปิด layer ครั้งแรก (สูงสุด 5,000 แถว) WMS/tiles ไม่มีแถวข้อมูล คอลัมน์เรียงตาม `popupFields` และหัวคอลัมน์ภาษาไทยอยู่ใน `fieldLabels` เครื่องมือของ Toolbox ส่งข้อมูลของตัวเองได้ด้วย `useDataSource` ใน Controller (Data Files ทำอยู่แล้ว)
 
-Layer ของ Toolbox มาจาก plugin (`my-data-files`, `my-photos`, `public-photos`, `my-drawing`, `public-drawing`) และมี `owner.toolId`; ปรับชื่อ/สี/สิทธิ์ได้ด้วย option ของ factory เช่น `drawTool({mine:{title:"..."}})` และต้องไม่ซ้ำกับ ID ใน `config/layers.ts` มิฉะนั้นเครื่องมือนั้นจะไม่ถูก mount และ Toolbox แสดงข้อความแจ้ง `GET /api/gis/layers` และหน้า `/admin/layers` แสดงเฉพาะ layer ระบบ
+Layer ของ Toolbox มาจาก plugin (`my-data-files`, `public-data-files`, `public-photos`, `my-drawing`, `public-drawing` และ `my-photos/<eventId>` ที่ plugin Photo เพิ่ม-ลบเองตามชุดเหตุการณ์ที่กด Add to map ชื่อ "My Photos/ชื่อเหตุการณ์") และมี `owner.toolId`; ปรับชื่อ/สี/สิทธิ์ได้ด้วย option ของ factory เช่น `drawTool({mine:{title:"..."}})` และต้องไม่ซ้ำกับ ID ใน `config/layers.ts` มิฉะนั้นเครื่องมือนั้นจะไม่ถูก mount และ Toolbox แสดงข้อความแจ้ง `GET /api/gis/layers` และหน้า `/admin/layers` แสดงเฉพาะ layer ระบบ
 
 WMS/WFS/vector/raster/ArcGIS ยังไม่มี renderer ใน RegistryLayers นี้ ต้องเพิ่ม adapter ตามชนิดข้อมูลก่อนเปิดใช้งาน ข้อมูลขนาดใหญ่ใช้ PostGIS/MVT ตามแนวทาง README
 
