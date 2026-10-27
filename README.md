@@ -118,7 +118,7 @@ My Photos ใน IndexedDB เดิมที่ยังไม่หมดอ�
 
 ## Drawing Toolbar
 
-Toolbox → Draw → **Drawing Toolbar** เปิด/ปิดแถบเครื่องมือด้านขวาบนแผนที่ สีเริ่มต้นของรูปวาดเป็นสีแดง เปิดแล้วเปิด Layer My Drawing ด้วย ปิดแถบแล้วกลับไปเลื่อนแผนที่ได้และรูปวาดยังแสดงจนกว่าจะปิด layer
+Toolbox → Draw → **Drawing Toolbar** เปิด/ปิดแถบเครื่องมือด้านขวาบนแผนที่ วาดบน **กระดาษร่าง** (บันทึกบนเครื่องอัตโนมัติ แสดงเฉพาะตอนเปิดแถบ) แล้วกด **Save ชุดรูปวาด** ท้ายแถบ (ชื่อบังคับกรอก + แท็ก) ชุดจะขึ้นเป็น layer "My Drawing/ชื่อชุด" ในกลุ่ม "ข้อมูลของฉัน" และกระดาษร่างว่าง (SDK 1.10) สีเริ่มต้นของรูปวาดเป็นสีแดง
 
 - Select: แสดงพิกัดทุกจุดของวัตถุที่เลือกเป็นละติจูด, ลองจิจูด (WGS84) ในแถบเครื่องมือ อัปเดตขณะย้ายหรือปรับขนาด คลิกเลือกและลากย้าย ลากจุดมุมล่างขวาเพื่อปรับขนาด; Pan: เลื่อนแผนที่ตามปกติ
 - Pen / Highlighter: ลากเมาส์หรือนิ้วเพื่อวาดเส้นอิสระหรือเน้นด้วยสีโปร่งใส; Eraser: คลิกเพื่อลบทั้งวัตถุ
@@ -128,7 +128,7 @@ Toolbox → Draw → **Drawing Toolbar** เปิด/ปิดแถบเค�
 - เลือกวัตถุเพื่อแก้ข้อความและรูปแบบได้: Font, Size, Color, Background, Border, Transparency, Rotation และ Alignment; ขนาดเส้นกำหนดความหนากรอบด้วย
 - Undo/Redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z), Delete ลบวัตถุที่เลือก, Escape ยกเลิกการวาดที่ยังไม่เสร็จ; ไม่จับคีย์ลัดขณะพิมพ์ในฟอร์ม
 
-รูปวาดที่กำลังแก้ไขอยู่ในหน่วยความจำ กด **บันทึก My Drawing** ใน Drawing Toolbar เพื่อเก็บใน IndexedDB `thaiwater-my-drawing` แยกตาม user ID (guest ใช้ namespace เดิม) เป็นเวลา 15 วันนับจากบันทึกครั้งล่าสุด อ่านกลับเมื่อเข้า GIS และล้างรายการหมดอายุเมื่อเปิดครั้งถัดไป การแก้ไขที่ไม่ได้กดบันทึกจะหายเมื่อรีเฟรช ไม่ส่ง My Drawing ไป service จำกัด 500 วัตถุ / 2,000 จุดต่อเส้น / Undo 50 ขั้น พิกัดใช้ WGS84 และ overlay ฉายตำแหน่งใหม่เมื่อเลื่อน ซูม หมุน หรือปรับขนาดแผนที่ ข้อความใช้ JSX ไม่ใช้ HTML จากผู้ใช้
+กระดาษร่างและชุดรูปวาดเก็บใน IndexedDB `thaiwater-my-drawing` (version 2) แยกตาม user ID (guest ใช้ namespace เดิม) ชุดเก็บ 15 วันนับจากบันทึกครั้งล่าสุด รูปวาดที่บันทึกก่อนอัปเดตถูกย้ายเป็นชุด "My Drawing เดิม" บนแผนที่ ปุ่มเฟือง **My Drawing** เปิด "จัดการ My Drawing": แต่ละชุดมี **+ Add to map**, **− Remove from map**, **จัดการชุดรูปวาด** (แก้ชื่อ/แท็ก และ "แก้ไขรูปวาดใน Drawing Toolbar" เปิดชุดบนกระดาษแล้วกด **บันทึกการแก้ไข**), **Save to Public** และลบ แถว layer ของชุดในแผงชั้นข้อมูลมีปุ่ม − และตารางข้อมูลแสดงวัตถุของ layer ที่เปิดอยู่ (กดประเภทเพื่อซูมไปที่วัตถุ) ไม่ส่ง My Drawing ไป service จนกว่าจะกด Save to Public จำกัด 500 วัตถุ / 2,000 จุดต่อเส้น / Undo 50 ขั้น พิกัดใช้ WGS84 และ overlay ฉายตำแหน่งใหม่เมื่อเลื่อน ซูม หมุน หรือปรับขนาดแผนที่ ข้อความใช้ JSX ไม่ใช้ HTML จากผู้ใช้
 
 ## Webmap extensions
 
@@ -159,13 +159,14 @@ plugin `dataFilesTool` วาดจุด เส้น และพื้นท�
 
 ## Public Drawing service
 
-ใน Drawing Toolbar ระบุชื่อชุดและกด **Save & Share Public** เพื่ออัปโหลดวัตถุที่เลือก หากไม่ได้เลือกจะส่งทั้งชุด ผู้ใช้เห็นข้อความยืนยันขอบเขตก่อนกด ทุกคนเห็นรูปวาดและข้อความที่เผยแพร่แล้ว การแก้ไข My Drawing ไม่เปลี่ยนสำเนา Public เปิด Layer Public Drawing เพื่อดูผล โดยรักษาสี รูปแบบ ข้อความ ลูกศร และการหมุนตามต้นฉบับ
+ใน "จัดการ My Drawing" กด **Save to Public** ของชุดเพื่ออัปโหลดทั้งชุดพร้อมชื่อและแท็ก (ระบบเพิ่ม `shareYYYY-MM-DD`) ทุกคนเห็นรูปวาดและข้อความที่เผยแพร่แล้ว การแก้ชุดภายหลังไม่เปลี่ยนสำเนา Public ปุ่มเฟือง **Public Drawing** เปิด "ค้นหาชุดรูปวาด Public" (ชื่อชุด ผู้แชร์ แท็ก วันที่แชร์ แบบ AND แสดงชุดล่าสุดก่อน 20 ชุดต่อหน้า) แต่ละชุดมี **+ Add to map** เป็น layer "Public Drawing/ชื่อชุด" (จำไว้ใน localStorage) และ **− Remove from map** โดยรักษาสี รูปแบบ ข้อความ ลูกศร และการหมุนตามต้นฉบับ
 
-- `POST /api/drawing-shares` ส่ง JSON `{name,drawings}` ผ่าน proxy ไป `/drawing-shares` ใน Toolbox; requireUser/ACTIVE เมื่อเปิดบัญชี หรือ signed guest identity ในโหมดปัจจุบัน พร้อม same-origin check ใช้ key เฉพาะฝั่งเซิร์ฟเวอร์
+- `GET /api/public/drawing-shares` (ค้นหาชุดรูปวาด ส่งต่อเฉพาะเงื่อนไขที่ผ่าน `publicDrawingSetSearch`) และ `GET /api/drawing-shares/[shareId]` (รูปวาดของชุดสำหรับ Add to map) เป็น PUBLIC ใช้ key อ่านอย่างเดียว
+- `POST /api/drawing-shares` ส่ง JSON `{name,tags,drawings}` ผ่าน proxy ไป `/drawing-shares` ใน Toolbox; requireUser/ACTIVE เมื่อเปิดบัญชี หรือ signed guest identity ในโหมดปัจจุบัน พร้อม same-origin check ใช้ key เฉพาะฝั่งเซิร์ฟเวอร์
 - Zod ตรวจชนิดวัตถุ พิกัด WGS84 รูปทรงปิด สี hex และรูปแบบที่อนุญาต แชร์ 1–100 วัตถุ ไม่เกิน 20,000 จุด / 1 MB; การบันทึก My Drawing จำกัด 500 วัตถุ / 20,000 จุด / 1 MB ข้อความวัตถุละ 1,000 ตัวอักษร
 - `POST /api/data-file-shares` ส่ง JSON `{name,description,tags,data}` (FeatureCollection ของไฟล์หนึ่งไฟล์ ไม่เกิน 5,000 รายการ / 50,000 พิกัด / 5 MB) ผ่าน proxy ไป `/data-file-shares` ด้วยการตรวจตัวตน, same-origin, rate limit และ key `read,write` แบบเดียวกับรูปวาด ระบบเพิ่มแท็ก `shareYYYY-MM-DD` เอง
 - `GET /api/public/data-files?bbox=west,south,east,north&limit=500&search=&tag=` เป็น PUBLIC ส่งต่อเฉพาะพารามิเตอร์ที่ผ่าน `publicDataFileSearch` (limit 1–1000) คืน features ที่กรอบทับ viewport พร้อม `share_name`, `share_description`, `share_username`, `share_tags`, `share_id` จำกัด 100,000 พิกัด / 4 MB ต่อคำตอบ
-- `GET /api/public/drawings?bbox=west,south,east,north&limit=50` เป็น PUBLIC และ proxy ไป `/public/drawings` ค้นหากรอบรูปวาดที่ทับ viewport ด้วย indexed numeric bounds ใน SQLite รวม viewport ข้ามเส้นวันที่ จำกัด 50 วัตถุ (gateway ปฏิเสธ `limit` เกิน 50) / 20,000 จุด / ประมาณ 1 MB ต่อคำตอบ พร้อม `hasMore` ให้ซูมเข้า เป็นการค้นหากรอบ ไม่ใช่ exact geometry intersection
+- `GET /api/public/drawings?bbox=west,south,east,north&limit=50` (คงไว้ให้ client เดิม SDK 1.10 ไม่ใช้แล้ว) เป็น PUBLIC และ proxy ไป `/public/drawings` ค้นหากรอบรูปวาดที่ทับ viewport ด้วย indexed numeric bounds ใน SQLite รวม viewport ข้ามเส้นวันที่ จำกัด 50 วัตถุ (gateway ปฏิเสธ `limit` เกิน 50) / 20,000 จุด / ประมาณ 1 MB ต่อคำตอบ พร้อม `hasMore` ให้ซูมเข้า เป็นการค้นหากรอบ ไม่ใช่ exact geometry intersection
 - ไม่ดึงข้อมูลทั้งชุดฐานข้อมูล; debounce 250 ms และยกเลิก request เก่า รองรับ loading/empty/error และปรับ opacity/visibility ผ่าน registry เดิม Public Drawing เป็น read-only ไม่แก้หรือลบด้วยเครื่องมือ My Drawing
 - SQLite เก็บ `drawing_shares`, `drawings`, `drawing_bounds` และ audit `DRAWING_SHARE_PUBLISHED` ใน transaction เดียว ไม่เพิ่ม environment variable และไม่ใช้ PostgreSQL สำหรับรูปวาด
 

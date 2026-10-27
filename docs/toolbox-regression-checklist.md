@@ -44,14 +44,14 @@
 
 ## D. Draw
 
-- [ ] Toolbox → Draw → เปิด Drawing Toolbar → แถบเครื่องมือขวาบนปรากฏ, Layer My Drawing เปิดอัตโนมัติ
+- [ ] Toolbox → Draw → เปิด Drawing Toolbar → แถบเครื่องมือขวาบนปรากฏ, Toolbox แสดง "กระดาษร่าง N วัตถุ" และไม่มีสวิตช์ layer
 - [ ] วาด Point, Line, Polygon, Rectangle, Circle, Arrow, Text, Sticky Note อย่างละ 1 → จำนวนวัตถุใน Toolbox เพิ่มตาม
 - [ ] Select วัตถุ → แสดงพิกัด WGS84 ลากย้ายและปรับขนาดได้ แก้สี/ขนาด/การหมุนได้
 - [ ] Undo/Redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z), Delete, Escape ทำงาน และไม่ทำงานขณะพิมพ์ในช่องข้อความ
 - [ ] เลื่อน/ซูม/หมุนแผนที่ → รูปวาดอยู่ตำแหน่งเดิมบนพื้นโลก
-- [ ] กด "บันทึก My Drawing" แล้วรีเฟรช → รูปวาดกลับมาครบ; ถ้าไม่กดบันทึก รีเฟรชแล้วหาย
-- [ ] Save & Share Public พร้อมชื่อชุด → เปิด Layer Public Drawing เห็นรูปวาดพร้อมสี/ข้อความ/การหมุนเดิม และแก้ไขไม่ได้
-- [ ] ปิด Drawing Toolbar → กลับไปเลื่อนแผนที่ได้ รูปวาดยังแสดงจนปิด Layer
+- [ ] วาดแล้วรีเฟรช → กระดาษร่างกลับมาครบ; Save ชุดรูปวาดโดยไม่ใส่ชื่อขึ้นข้อความให้ระบุชื่อ; ใส่ชื่อ+แท็กแล้ว Save → มี layer "My Drawing/<ชื่อ>" และกระดาษว่าง; จัดการ My Drawing: Add to map / Remove from map / แก้ชื่อแล้ว layer เปลี่ยนชื่อ / แก้ไขรูปวาดใน Toolbar แล้วบันทึกการแก้ไข / ลบชุด; ปุ่ม − ในแผงชั้นข้อมูล; ตารางข้อมูลมีแท็บของชุดและกดประเภทแล้วซูม
+- [ ] Save to Public ของชุด → ค้นหาใน Public Drawing (แสดงชุดล่าสุดก่อน กรองชื่อ/ผู้แชร์/แท็ก/วันที่) → Add to map เป็น layer "Public Drawing/<ชื่อ>" เห็นรูปวาดพร้อมสี/ข้อความ/การหมุนเดิม แก้ไขไม่ได้, Remove from map แล้วหาย, รีเฟรชแล้วชุดที่เพิ่มยังอยู่
+- [ ] ปิด Drawing Toolbar → กลับไปเลื่อนแผนที่ได้ ชุดที่อยู่บนแผนที่ยังแสดงจนกด Remove from map หรือปิด layer
 
 ## E. Simple Data Files
 
@@ -92,4 +92,5 @@
 | 2026-10-27 | SDK 1.7.0 (Add to map / Remove from map) | Claude (ตรวจบางข้อ) | ข้อ My Photos, Public Photos | ผ่านบน dev พอร์ต 3000: ค้นหาชุด Public มีปุ่ม + Add to map และ − Remove from map (กดแล้ว marker หาย), ชุด My Photos มี + Add to map และ − Remove from map เมื่ออยู่บนแผนที่ กดแล้ว layer หายแต่ชุดยังอยู่, ลบชุดทดสอบแล้ว |
 | 2026-10-27 | SDK 1.7.0 (รูปภาพในตารางข้อมูล) | Claude (ตรวจบางข้อ) | ข้อ Data Panel, Public Photos | ผ่านบน dev พอร์ต 3000 กับชุด Public "ทดสอบ1" (อ่านอย่างเดียว): Add to map แล้วตารางข้อมูลมีแท็บ "Public Photos/ทดสอบ1" 3 แถว (ชื่อรูป วันที่ถ่าย ชุดเหตุการณ์ แชร์โดย แท็ก), กดชื่อรูปแล้วแผนที่ซูมไปที่รูปและเปิด popup ของรูป ชุด My Photos ตรวจด้วย test ของ SDK |
 | 2026-10-27 | SDK 1.8.0 (ปุ่ม − ในแผงชั้นข้อมูล) | Claude (ตรวจบางข้อ) | ข้อ Layer Panel, Photo | ผ่านบน dev พอร์ต 3000: แถว "My Photos/ทดสอบ Claude" และ "Public Photos/ทดสอบ1" มีปุ่ม − ส่วน layer อื่นไม่มี, กด − แล้ว layer และ marker หาย ชุด My Photos ยังอยู่ (onMap=false) และรายการชุด Public ที่จำไว้ว่าง, ลบชุดทดสอบแล้ว |
+| 2026-10-27 | SDK 1.10.0 + service 1.6.0 (Draw แบบเดียวกับ Photo) | Claude (ตรวจบางข้อ) | ข้อ Draw, Public Drawing | ผ่านบน dev พอร์ต 3000 กับ service จริง: รูปวาดเดิมในเบราว์เซอร์ย้ายเป็นชุด "My Drawing เดิม" บนแผนที่, วาดจุดบนกระดาษร่างแล้ว Save ชุดรูปวาด (ชื่อ+แท็ก) ได้ layer "My Drawing/<ชื่อ>" และกระดาษว่าง, Save to Public ได้แท็ก share2026-10-27 + แท็กผู้ใช้, ค้นหาใน Public Drawing พบชุด แล้ว Add to map ได้ layer "Public Drawing/<ชื่อ>", ปุ่ม − อยู่ครบทุกแถวชุด, Remove from map และลบชุดทดสอบ/ชุด Public ทดสอบแล้ว ยังไม่ได้ตรวจในเบราว์เซอร์: แก้ไขรูปวาดของชุดใน Toolbar และตารางข้อมูล (ตรวจด้วย test ของ SDK) |
 | | | | | |

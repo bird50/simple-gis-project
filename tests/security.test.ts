@@ -3,7 +3,7 @@ import {test} from "node:test";
 import {authKey} from "../lib/auth/secret";
 import {removesActiveAdmin} from "../lib/auth/admin-guard";
 import {clientAddress,createRateLimiter} from "../lib/security/rate-limit";
-import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch,publicPhotoSetSearch} from "../lib/toolbox/public-query";
+import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch,publicPhotoSetSearch,publicDrawingSetSearch} from "../lib/toolbox/public-query";
 import {stationBbox} from "../lib/gis/bbox";
 
 test("production refuses a missing, short or example AUTH_SECRET; development keeps a local fallback",()=>{
@@ -73,4 +73,9 @@ test("public photo set search forwards only validated filters",()=>{
  assert.equal(String(publicPhotoSetSearch(new URLSearchParams("eventName=flood&tag=x&evil=1&offset=20"))),"offset=20&limit=20&eventName=flood&tag=x");
  assert.equal(publicPhotoSetSearch(new URLSearchParams("limit=51")),null);
  assert.equal(publicPhotoSetSearch(new URLSearchParams("startDate=2026-10-20&endDate=2026-10-19")),null);
+});
+test("public drawing set search forwards only validated filters",()=>{
+ assert.equal(String(publicDrawingSetSearch(new URLSearchParams("name=flood&tag=x&evil=1&offset=20"))),"offset=20&limit=20&name=flood&tag=x");
+ assert.equal(publicDrawingSetSearch(new URLSearchParams("limit=51")),null);
+ assert.equal(publicDrawingSetSearch(new URLSearchParams("startDate=2026-10-20&endDate=2026-10-19")),null);
 });
