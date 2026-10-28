@@ -108,7 +108,7 @@ npm run dev
 - ล้างภาพในเครื่องที่หมดอายุเมื่อเข้า GIS, กลับมาที่แท็บ และทุก 1 นาที My Photos ใช้งานได้แม้ service ไม่พร้อม
 - **Save to Public** ของชุดเหตุการณ์อัปโหลดภาพในชุด เป็น multipart `{eventName,tags,photos,captions}` ครั้งละ 1–10 รูป รวม request ไม่เกิน 25 MB ตรวจ GPS/วันที่ถ่ายจาก EXIF ใหม่ แปลงเป็น JPEG ด้านยาวสูงสุด 2,400 px และถอด EXIF ส่วนเกิน บันทึก Public พร้อม audit ใน transaction และแท็ก `shareYYYY-MM-DD` เวลาไทย ภาพ Public ไม่หมดอายุตาม My Photos
 - `POST /api/photo-shares`: เมื่อเปิดระบบบัญชีใช้ requireUser และตรวจ ACTIVE; โหมดผู้เยี่ยมชมใช้ signed HTTP-only cookie ระบุผู้เผยแพร่ ไม่เกี่ยวกับการบันทึก/อ่าน My Photos ไม่มี My Photos API ในเว็บหรือ service
-- `GET /api/public/photo-shares` (ค้นหาชุดรูปภาพ), `GET /api/photo-shares/[shareId]` (ข้อมูลชุดสำหรับ Add to map), `GET /api/public/photos?bbox=west,south,east,north&limit=200` (คงไว้ให้ client เดิม), `/share/[shareId]` และ `GET /api/photo-shares/[shareId]/photos/[photoId]`: PUBLIC ผ่าน proxy โดยไม่เปิดเผย service key; gateway ส่งต่อเฉพาะพารามิเตอร์ที่ผ่านการตรวจ (`lib/toolbox/public-query.ts`)
+- `GET /api/public/photo-shares` (ค้นหาชุดรูปภาพ), `GET /api/photo-shares/[shareId]` (ข้อมูลชุดสำหรับ Add to map), `GET /api/public/photos?bbox=west,south,east,north&limit=200` (คงไว้ให้ client เดิม), `/share/[shareId]` และ `GET /api/photo-shares/[shareId]/photos/[photoId]`: PUBLIC ผ่าน proxy โดยไม่เปิดเผย service key; gateway ส่งต่อเฉพาะพารามิเตอร์ที่ผ่านการตรวจ (`lib/toolbox/queries/<tool>.ts`)
 - Public Photos (SDK 1.6) ไม่มี layer ที่โหลดตาม viewport และไม่มีสวิตช์ใน Toolbox แล้ว ปุ่มเฟืองเปิด **ค้นหาชุดรูปภาพ Public**: เปิดแล้วแสดงชุดล่าสุดก่อน กรองด้วย `eventName`, `username` (ค้นหาบางส่วน), `tag` (ทั้งคำ) และ `startDate`/`endDate` (ชุดที่มีภาพถ่ายในช่วงนั้น) แบบ AND ทีละ 20 ชุดพร้อมปุ่มโหลดเพิ่ม แต่ละชุดมีปุ่ม **Add to map** ที่เพิ่ม layer "Public Photos/ชื่อชุด" ในกลุ่ม "ภาพถ่ายสาธารณะ" และซูมไปที่ชุด เอาออกได้ด้วยปุ่ม **Remove from map** (ไอคอน −) ในหน้าค้นหา ชุดที่เพิ่มไว้จำใน localStorage ของเบราว์เซอร์ (เฉพาะ ID และชื่อ) และถูกตัดออกเองเมื่อชุดถูกลบจาก service
 - `capturedAt` เป็นเวลาตามกล้องและ `capturedOffset` เป็น timezone จาก EXIF ไม่ใช้เวลาอัปโหลดแทนวันที่ถ่าย
 
@@ -141,6 +141,10 @@ Toolbox ใช้ Tool API 2.0 ของ SDK: `config/toolboxes.tsx` เป็�
 My Photos และ Simple Data Files ใช้ namespace `guest-workspace-v1` ใน IndexedDB ของเบราว์เซอร์ ภาพเดิมยังไม่ถูกย้าย/ลบ; signed cookie ของ Toolbox ใช้เฉพาะระบุผู้เผยแพร่ Public
 
 หน้า login/register/profile/admin ส่งไป `/gis`; API login/register/profile/admin พักใช้งานด้วย 503 โดยไม่เปิดข้อมูลบัญชีหรือสร้างบัญชีสมมติ Logout ยังล้าง cookie ได้ หากต้องการเปิดระบบบัญชีกลับ ให้เปลี่ยน `AUTH_ENABLED=true` แล้ว build/restart โดยใช้ AUTH_SECRET และฐานข้อมูลตาม setup เดิม ข้อกำหนดสิทธิ์ในส่วนอื่นของ README อธิบายการทำงานเมื่อเปิดระบบบัญชี
+
+## การทำงานเป็นทีม (Toolbox)
+
+แต่ละเครื่องมือมีผู้รับผิดชอบได้แยกกันทั้ง 3 repo: SDK `src/tools/<tool>/` และ contract ใน `src/contracts/`, service `src/modules/<module>.ts`, เว็บ route ของเครื่องมือใน `app/api/**` และ `lib/toolbox/queries/<tool>.ts` เจ้าของแต่ละส่วนอยู่ใน `.github/CODEOWNERS` (แทน `@bird50` ด้วยชื่อ GitHub ของผู้พัฒนา) ขั้นตอน branch, change fragment, การแก้ส่วนกลาง และ release อยู่ใน `../toolbox_sdk/CONTRIBUTING.md` CI ของเว็บ (`.github/workflows/ci.yml`) checkout SDK `main` ไว้ข้างกัน แล้วรัน lint, unit test และ build
 
 ## Simple Data Files (frontend)
 

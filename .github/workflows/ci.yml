@@ -1,0 +1,42 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main, test1]
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: simple_gis_webapp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: simple_gis_webapp
+      # The web installs the SDK from ../toolbox_sdk (package.json file: dependency).
+      - uses: actions/checkout@v4
+        with:
+          repository: bird50/webmap_toolbox_sdk
+          ref: main
+          path: toolbox_sdk
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            simple_gis_webapp/package-lock.json
+            toolbox_sdk/package-lock.json
+      - name: Build the SDK
+        working-directory: toolbox_sdk
+        run: npm ci
+      - run: npm ci
+      # Build-time values only: no database is reached and nothing is deployed.
+      - name: Build environment
+        run: |
+          echo "DATABASE_URL=postgresql://ci:ci@localhost:5432/ci" >> "$GITHUB_ENV"
+          echo "AUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - run: npm run lint
+      - run: node --import tsx --test tests/*.test.ts
+      - run: npm run build

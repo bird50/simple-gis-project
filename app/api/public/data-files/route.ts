@@ -1,5 +1,5 @@
 import {proxyToolbox} from "@/lib/toolbox/service";
-import {publicDataFileSearch} from "@/lib/toolbox/public-query";
+import {publicDataFileSearch} from "@/lib/toolbox/queries/data-files";
 export function GET(request:Request){
  const query=publicDataFileSearch(new URL(request.url).searchParams);
  if(!query)return Response.json({error:"พื้นที่ค้นหาไม่ถูกต้อง"},{status:400});

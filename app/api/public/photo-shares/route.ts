@@ -1,5 +1,5 @@
 import {proxyToolbox} from "@/lib/toolbox/service";
-import {publicPhotoSetSearch} from "@/lib/toolbox/public-query";
+import {publicPhotoSetSearch} from "@/lib/toolbox/queries/photos";
 export function GET(request:Request){
  const query=publicPhotoSetSearch(new URL(request.url).searchParams);
  if(!query)return Response.json({error:"เงื่อนไขค้นหาไม่ถูกต้อง"},{status:400});

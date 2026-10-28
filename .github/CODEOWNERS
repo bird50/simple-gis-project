@@ -1,0 +1,24 @@
+# Owners review pull requests that touch their paths (see ../toolbox_sdk/CONTRIBUTING.md).
+# Replace @bird50 on the tool lines with each tool owner's GitHub name. The last matching line wins.
+
+# Maintainer: the application, auth, toolbox wiring and gateway core (lib/toolbox/service.ts).
+*                                        @bird50
+
+# Photo gateway
+/app/api/photo-shares/                   @bird50
+/app/api/public/photos/                  @bird50
+/app/api/public/photo-shares/            @bird50
+/app/share/                              @bird50
+/lib/toolbox/queries/photos.ts           @bird50
+
+# Draw gateway
+/app/api/drawing-shares/                 @bird50
+/app/api/public/drawings/                @bird50
+/app/api/public/drawing-shares/          @bird50
+/lib/toolbox/queries/drawings.ts         @bird50
+
+# Data Files gateway
+/app/api/data-file-shares/               @bird50
+/app/api/public/data-files/              @bird50
+/app/api/public/data-file-shares/        @bird50
+/lib/toolbox/queries/data-files.ts       @bird50

@@ -14,7 +14,7 @@ bird_dev/
 ```
 
 - The web installs the SDK as `file:../toolbox_sdk` with `install-links=true` (`.npmrc`): a copy, not a symlink. After changing the SDK, rebuild it and reinstall here. npm skips reinstalling when the version is unchanged, so remove the copy first:
-  `rm -rf node_modules/@thaiwater/toolbox-sdk && npm install ../toolbox_sdk --install-links`, then restart `npm run dev`. If the dev server was running during the reinstall and SDK UI shows unstyled (Tailwind `@source` read the missing copy), stop dev, delete `.next/dev` and start it again.
+  `rm -rf node_modules/@thaiwater/toolbox-sdk && npm install ../toolbox_sdk --install-links`, then restart `npm run dev`. If the dev server was running during the reinstall and SDK UI shows unstyled (Tailwind `@source` read the missing copy), stop dev, delete `.next/dev` and start it again. `app/globals.css` scans the SDK's `src/ui`, `src/adapters` and `src/tools`; keep that list in step with the SDK's folders.
 - Import the SDK only through its public entries: `@thaiwater/toolbox-sdk`, `/react/core` (shared runtime; `/react` is the deprecated all-in-one), `/maplibre`, `/storage`, `/core/{drawing,data-files,photo-gps}`, `/tools/{photo,draw,data-files,navigation}`. Deep paths (`/ui/...`, `/adapters/...`) are not exported.
 - Never edit tool code here. Tool UI, text and storage live in the SDK; change them there.
 
@@ -29,7 +29,7 @@ bird_dev/
 ## Gateway to toolbox_service
 
 - `lib/toolbox/service.ts` `proxyToolbox` is the only path to the service: same-origin check (`sameOrigin` compares `Origin` with the Host / X-Forwarded-Host header, not `request.url`), publication rate limit, body size cap, owner headers, bearer key.
-- Routes: `app/api/photo-shares`, `app/api/drawing-shares` (+ `[shareId]` GET), `app/api/data-file-shares` (+ `[shareId]` GET), `app/api/public/{photos,photo-shares,drawings,drawing-shares,data-files,data-file-shares}`, `app/api/photo-shares/[shareId]`, `app/api/photo-shares/[shareId]/photos/[photoId]`, page `app/share/[shareId]`. Public GETs forward only parameters validated by `lib/toolbox/public-query.ts`.
+- Routes: `app/api/photo-shares`, `app/api/drawing-shares` (+ `[shareId]` GET), `app/api/data-file-shares` (+ `[shareId]` GET), `app/api/public/{photos,photo-shares,drawings,drawing-shares,data-files,data-file-shares}`, `app/api/photo-shares/[shareId]`, `app/api/photo-shares/[shareId]/photos/[photoId]`, page `app/share/[shareId]`. Public GETs forward only parameters validated by `lib/toolbox/queries/<tool>.ts`.
 - Keys stay server-side (never `NEXT_PUBLIC_*`). `serviceKey()` picks `TOOLBOX_SERVICE_READ_KEY` (scope `read`) for GET and `TOOLBOX_SERVICE_KEY` (scopes `read,write`) for publishing; without a read key, reads use the write key. Both are issued by `npm run key:create` in toolbox_service (or the write key equals the service's legacy `.env` key). `TOOLBOX_SERVICE_KEY` also signs guest publisher cookies, so rotating it re-issues guest identities. Identity headers come from the gateway, never from the client.
 
 ## Auth mode and security
@@ -49,6 +49,11 @@ node --import tsx --test tests/*.test.ts      # unit tests (no npm test script)
 - Open the dev site via `localhost`. Through a LAN IP, HMR is blocked unless the IP is in `allowedDevOrigins` (`next.config.ts`) — don't commit machine IPs.
 - `next build`/`next dev` rewrite `next-env.d.ts`; restore it (`git checkout -- next-env.d.ts`) instead of committing the dev variant. Delete stray `tsconfig.tsbuildinfo` after ad-hoc `tsc` runs.
 - Public sharing needs `toolbox_service` running on 127.0.0.1:4010; private tools work without it.
+
+## Team
+
+- Tool gateway files (routes under `app/api/**`, `lib/toolbox/queries/<tool>.ts`) have per-tool owners in `.github/CODEOWNERS`; toolbox wiring and `lib/toolbox/service.ts` belong to the maintainer. Workflow: `../toolbox_sdk/CONTRIBUTING.md`.
+- CI (`.github/workflows/ci.yml`) checks out the SDK's `main` next to the web, then runs lint, unit tests and build.
 
 ## Known constraints
 

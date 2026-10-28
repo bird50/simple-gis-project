@@ -3,7 +3,9 @@ import {test} from "node:test";
 import {authKey} from "../lib/auth/secret";
 import {removesActiveAdmin} from "../lib/auth/admin-guard";
 import {clientAddress,createRateLimiter} from "../lib/security/rate-limit";
-import {publicDataFileSearch,publicDrawingSearch,publicPhotoSearch,publicPhotoSetSearch,publicDrawingSetSearch,publicDataFileSetSearch} from "../lib/toolbox/public-query";
+import {publicPhotoSearch,publicPhotoSetSearch} from "../lib/toolbox/queries/photos";
+import {publicDrawingSearch,publicDrawingSetSearch} from "../lib/toolbox/queries/drawings";
+import {publicDataFileSearch,publicDataFileSetSearch} from "../lib/toolbox/queries/data-files";
 import {stationBbox} from "../lib/gis/bbox";
 
 test("production refuses a missing, short or example AUTH_SECRET; development keeps a local fallback",()=>{

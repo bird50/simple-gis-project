@@ -55,6 +55,7 @@
 /* SDK components share this application's Tailwind build and design tokens. */
 @source "../node_modules/@thaiwater/toolbox-sdk/src/ui";
 @source "../node_modules/@thaiwater/toolbox-sdk/src/adapters";
+@source "../node_modules/@thaiwater/toolbox-sdk/src/tools";
 .sdk-settings-panel {right:var(--sdk-settings-right,12px);top:var(--sdk-settings-top,80px)}
 .sdk-drawing-toolbar {right:var(--sdk-drawing-right,56px);top:var(--sdk-drawing-top,56px)}
 @media(min-width:768px){.sdk-settings-panel{right:var(--sdk-settings-right,320px)}}
